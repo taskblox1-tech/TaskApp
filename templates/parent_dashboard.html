@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Parent Dashboard - Family Task Tracker{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 shadow-lg">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl font-bold mb-2">👨‍👩‍👧‍👦 Family Dashboard</h1>
+            <p class="text-green-100">{{ family.name }} • Join Code: <span class="font-mono font-bold">{{ family.join_code }}</span></p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-3">
+            <div class="flex space-x-4">
+                <a href="/parent/dashboard" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium">
+                    📊 Dashboard
+                </a>
+                <a href="/parent/manage-tasks" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">
+                    📋 Manage Tasks
+                </a>
+                <a href="/parent/settings" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">
+                    ⚙️ Settings
+                </a>
+                <a href="/logout" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium ml-auto">
+                    🚪 Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
+        <!-- Family Stats -->
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Total Points Today</p>
+                        <p class="text-3xl font-bold text-blue-600">
+                            {{ children_progress|sum(attribute='points') }}
+                        </p>
+                    </div>
+                    <div class="text-5xl">⭐</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Tasks Completed</p>
+                        <p class="text-3xl font-bold text-green-600">
+                            {{ children_progress|sum(attribute='completed_count') }}
+                        </p>
+                    </div>
+                    <div class="text-5xl">✅</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Active Children</p>
+                        <p class="text-3xl font-bold text-purple-600">
+                            {{ children_progress|length }}
+                        </p>
+                    </div>
+                    <div class="text-5xl">👶</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Children Progress -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Children Progress</h2>
+            
+            {% if children_progress %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for item in children_progress %}
+                <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-100 hover:border-blue-300 transition">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">
+                                {{ item.child.first_name }} {{ item.child.last_name }}
+                            </h3>
+                            <p class="text-sm text-gray-500">{{ item.child.role|title }}</p>
+                        </div>
+                        <div class="text-4xl">👤</div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                            <span class="text-sm text-gray-700">Today's Points</span>
+                            <span class="font-bold text-yellow-700">⭐ {{ item.points }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                            <span class="text-sm text-gray-700">Tasks Completed</span>
+                            <span class="font-bold text-green-700">✅ {{ item.completed_count }}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                            <span class="text-sm text-gray-700">Lifetime Points</span>
+                            <span class="font-bold text-blue-700">🏆 {{ item.child.total_lifetime_points }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12 bg-white rounded-xl">
+                <div class="text-6xl mb-4">👶</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">No children yet</h3>
+                <p class="text-gray-600 mb-4">Add family members or share your join code</p>
+                <div class="bg-gray-100 inline-block px-6 py-3 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-1">Family Join Code:</p>
+                    <p class="text-2xl font-bold font-mono text-blue-600">{{ family.join_code }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <!-- Quick Actions -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="/parent/manage-tasks" class="bg-white p-6 rounded-xl shadow-sm border-2 border-gray-100 hover:border-blue-300 transition text-center">
+                    <div class="text-4xl mb-2">📋</div>
+                    <p class="font-semibold text-gray-800">Manage Tasks</p>
+                </a>
+                
+                <a href="/parent/manage-rewards" class="bg-white p-6 rounded-xl shadow-sm border-2 border-gray-100 hover:border-purple-300 transition text-center">
+                    <div class="text-4xl mb-2">🎁</div>
+                    <p class="font-semibold text-gray-800">Manage Rewards</p>
+                </a>
+                
+                <a href="/parent/members" class="bg-white p-6 rounded-xl shadow-sm border-2 border-gray-100 hover:border-green-300 transition text-center">
+                    <div class="text-4xl mb-2">👥</div>
+                    <p class="font-semibold text-gray-800">Family Members</p>
+                </a>
+                
+                <a href="/parent/calendar" class="bg-white p-6 rounded-xl shadow-sm border-2 border-gray-100 hover:border-orange-300 transition text-center">
+                    <div class="text-4xl mb-2">📅</div>
+                    <p class="font-semibold text-gray-800">Calendar</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

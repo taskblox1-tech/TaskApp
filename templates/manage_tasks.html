@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Tasks{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <div class="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 shadow-lg">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl font-bold mb-2">📋 Manage Tasks</h1>
+            <p class="text-green-100">Create and assign tasks</p>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-3">
+            <div class="flex space-x-4">
+                <a href="/parent/dashboard" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">📊 Dashboard</a>
+                <a href="/parent/manage-tasks" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium">📋 Tasks</a>
+                <a href="/logout" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium ml-auto">🚪 Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
+        <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">➕ Create New Task</h2>
+            
+            <form hx-post="/parent/create-task" hx-target="#create-message" class="space-y-4">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
+                        <input type="text" name="title" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Make Your Bed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Points</label>
+                        <input type="number" name="points" required min="1" value="10" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                        <select name="icon" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="⭐">⭐ Star</option>
+                            <option value="🛏️">🛏️ Bed</option>
+                            <option value="🪥">🪥 Toothbrush</option>
+                            <option value="📚">📚 Books</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Period</label>
+                        <select name="period" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="morning">🌅 Morning</option>
+                            <option value="evening">🌙 Evening</option>
+                            <option value="anytime">⏰ Anytime</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="create-message"></div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">Create Task</button>
+            </form>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📝 Your Tasks</h2>
+            {% if tasks %}
+            <div class="space-y-3">
+                {% for task in tasks %}
+                <div class="bg-white rounded-xl p-4 shadow-sm border-2 border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="text-3xl">{{ task.icon }}</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800 text-lg">{{ task.title }}</h3>
+                                <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">{{ task.points }} pts</span>
+                                <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2">{{ task.period }}</span>
+                            </div>
+                        </div>
+                        <button hx-post="/parent/delete-task/{{ task.id }}" hx-confirm="Delete?" hx-target="closest .bg-white" hx-swap="outerHTML" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12 bg-white rounded-xl">
+                <div class="text-6xl mb-4">📝</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">No tasks yet</h3>
+                <p class="text-gray-600">Create your first task above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

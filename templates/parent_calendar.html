@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Family Calendar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <div class="bg-gradient-to-r from-orange-600 to-red-600 text-white p-6 shadow-lg">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl font-bold mb-2">📅 Family Calendar</h1>
+            <p class="text-orange-100">Schedule appointments, activities, and reminders</p>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-3">
+            <div class="flex space-x-4">
+                <a href="/parent/dashboard" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">📊 Dashboard</a>
+                <a href="/parent/manage-tasks" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">📋 Tasks</a>
+                <a href="/parent/manage-rewards" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">🎁 Rewards</a>
+                <a href="/parent/calendar" class="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg font-medium">📅 Calendar</a>
+                <a href="/parent/settings" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">⚙️ Settings</a>
+                <a href="/logout" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium ml-auto">🚪 Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
+        <!-- Create Event -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">➕ Create New Event</h2>
+            
+            <form hx-post="/parent/create-event" hx-target="#create-message" class="space-y-4">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
+                        <input type="text" name="title" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                               placeholder="Doctor Appointment">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
+                        <select name="event_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="appointment">🏥 Appointment</option>
+                            <option value="activity">🎨 Activity</option>
+                            <option value="reminder">⏰ Reminder</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" name="event_date" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Time (Optional)</label>
+                        <input type="time" name="event_time"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Points for Completion</label>
+                        <input type="number" name="points_for_completion" value="15" min="0"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                    <textarea name="description" rows="2"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                              placeholder="Additional details..."></textarea>
+                </div>
+
+                <div id="create-message"></div>
+
+                <button type="submit" class="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700">
+                    Create Event
+                </button>
+            </form>
+        </div>
+
+        <!-- Events List -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📅 Upcoming Events</h2>
+            
+            {% if events %}
+            <div class="space-y-3">
+                {% for event in events %}
+                <div class="bg-white rounded-xl p-4 shadow-sm border-2 border-gray-100 {% if event.is_completed %}opacity-60{% endif %}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start gap-4 flex-1">
+                            <div class="text-center min-w-[60px]">
+                                <div class="text-2xl font-bold text-gray-800">{{ event.event_date.strftime('%d') }}</div>
+                                <div class="text-xs text-gray-600">{{ event.event_date.strftime('%b') }}</div>
+                                {% if event.event_time %}
+                                <div class="text-xs text-gray-500 mt-1">{{ event.event_time }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    {% if event.event_type == 'appointment' %}
+                                    <span class="text-xl">🏥</span>
+                                    {% elif event.event_type == 'activity' %}
+                                    <span class="text-xl">🎨</span>
+                                    {% else %}
+                                    <span class="text-xl">⏰</span>
+                                    {% endif %}
+                                    <h3 class="font-bold text-gray-800">{{ event.title }}</h3>
+                                    {% if event.is_completed %}
+                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">✅ Completed</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if event.description %}
+                                <p class="text-sm text-gray-600 mb-2">{{ event.description }}</p>
+                                {% endif %}
+                                
+                                <div class="flex items-center gap-2 text-xs">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">{{ event.event_type|title }}</span>
+                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">+{{ event.points_for_completion }} pts</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            {% if not event.is_completed %}
+                            <button hx-post="/parent/complete-event/{{ event.id }}"
+                                    hx-target="#event-message-{{ event.id }}"
+                                    class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+                                ✅ Complete
+                            </button>
+                            {% endif %}
+                            <button hx-post="/parent/delete-event/{{ event.id }}"
+                                    hx-confirm="Delete this event?"
+                                    hx-target="closest .bg-white"
+                                    hx-swap="outerHTML"
+                                    class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div id="event-message-{{ event.id }}" class="text-sm mt-2"></div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12 bg-white rounded-xl">
+                <div class="text-6xl mb-4">📅</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">No events scheduled</h3>
+                <p class="text-gray-600">Create your first event above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
