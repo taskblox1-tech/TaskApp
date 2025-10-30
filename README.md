@@ -4,7 +4,42 @@ A comprehensive gamified task management system for families with 60+ pre-loaded
 
 ## ✨ Latest Updates
 
-### 🎯 Task Template Library (New!)
+### 📊 Enhanced Parent Dashboard (New!)
+**Comprehensive Family Insights:**
+- **Live Date/Time Display** - Real-time clock in dashboard header, updates every minute
+- **Personalized Welcome** - Shows current user's name in header
+- **Enhanced Children Stats** - Detailed cards for each child showing:
+  - Today's points earned and tasks completed
+  - Pending approvals count
+  - Total rewards claimed
+  - Visual completion progress bar
+  - Total lifetime points with star badge
+  - Last activity timestamp (e.g., "2 hours ago", "Yesterday")
+- **Family Members Tab** - New dedicated section showing:
+  - All family members (parents and children)
+  - Email addresses and roles
+  - Last login times with smart formatting
+  - "Just now", "5 mins ago", "2 hours ago" for recent activity
+  - Highlighted "(You)" badge for current user
+  - Points display for children
+
+### 🔧 Bulk Task Management (New!)
+**Efficient Multi-Task Operations:**
+- **Selection Mode** - Click "Select" button to enable checkbox mode
+- **Select All** - Quickly select all tasks at once
+- **Bulk Assign** - Assign multiple tasks to children simultaneously
+- **Bulk Delete** - Delete multiple tasks with one action
+- **Visual Feedback** - Selected tasks highlighted with blue border
+- **Progress Tracking** - Shows count of selected tasks during operations
+
+### 📋 Enhanced Task Display (New!)
+**Better Task Visibility:**
+- **Assigned Children Display** - Each task card shows who it's assigned to
+- **Quick Task Actions** - Assign, Edit, Delete buttons on each task
+- **Task Assignment Modal** - Dedicated interface for assigning tasks to children
+- **Assignment Tracking** - See task assignments at a glance without opening edit mode
+
+### 🎯 Task Template Library
 **60+ Pre-loaded Tasks Across 9 Categories**
 - No more creating tasks from scratch
 - 3-step wizard: Choose category → Select template → Customize
@@ -75,12 +110,21 @@ A comprehensive gamified task management system for families with 60+ pre-loaded
 ### Dashboards
 
 **Parent Dashboard:**
-- Family join code display with copy button
-- Real-time stats (total children, tasks, approvals, points)
-- 4 organized tabs: Children, Approvals, All Tasks, Rewards
-- Quick Actions panel for common tasks
-- 3-step task creation wizard with template selection
-- Approve/deny pending task completions
+- **Header**: Live date/time display, personalized welcome message with user name
+- **Family Stats**: Real-time stats (total children, tasks, approvals, family points)
+- **5 Organized Tabs**:
+  - **Children Tab**: Enhanced cards with today's progress, completion rates, pending approvals, rewards claimed, last activity
+  - **Family Members Tab**: All family members with email, role, last login times, points (for children)
+  - **Approvals Tab**: Review and approve/deny pending task completions
+  - **All Tasks Tab**: Complete task management with bulk operations (select, assign, delete)
+  - **Rewards Tab**: Create, edit, and delete rewards
+- **Task Management**:
+  - 3-step task creation wizard with 60+ templates
+  - Bulk operations: Select multiple tasks to assign or delete
+  - Quick actions: Assign, Edit, Delete buttons on each task
+  - Shows assigned children directly on task cards
+- **Quick Actions Panel**: Fast access to common tasks
+- **Family Join Code**: Easy copy button to share with family members
 
 **Child Dashboard:**
 - Personalized greeting with chosen theme icon
@@ -157,11 +201,11 @@ python main.py
 family-task-tracker/
 ├── app/
 │   ├── api/                    # API endpoints
-│   │   ├── auth.py            # Registration, login, user management
-│   │   ├── tasks.py           # Task CRUD, completion, templates
+│   │   ├── auth.py            # Registration, login, user management, children stats
+│   │   ├── tasks.py           # Task CRUD, completion, templates, assignments, bulk operations
 │   │   ├── approvals.py       # Task approval workflow
-│   │   ├── rewards.py         # Reward management
-│   │   └── families.py        # Family join codes
+│   │   ├── rewards.py         # Reward CRUD operations
+│   │   └── families.py        # Family join codes, family members list
 │   ├── core/                   # Security, dependencies
 │   ├── models/                 # Database models
 │   │   ├── task.py            # Task model with approval field
