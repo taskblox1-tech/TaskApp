@@ -54,6 +54,7 @@ class Profile(Base):
         foreign_keys="TaskApproval.approved_by",
         back_populates="approver"
     )
-    
+    character_unlocks = relationship("CharacterUnlock", back_populates="child", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<Profile {self.first_name} ({self.role.value})>"

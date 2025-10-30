@@ -25,10 +25,10 @@ const THEMES = {
       pointsEarn: '/static/sounds/default-coin.mp3'
     },
     avatars: [
-      { name: 'Star', emoji: '⭐', color: '#FFD700' },
-      { name: 'Rocket', emoji: '🚀', color: '#4F46E5' },
-      { name: 'Rainbow', emoji: '🌈', color: '#7C3AED' },
-      { name: 'Lightning', emoji: '⚡', color: '#F59E0B' }
+      { name: 'Star', emoji: '⭐', color: '#FFD700', imageUrl: '/static/images/characters/default/star.png', unlockRequirement: null, description: 'Classic star champion' },
+      { name: 'Rocket', emoji: '🚀', color: '#4F46E5', imageUrl: '/static/images/characters/default/rocket.png', unlockRequirement: null, description: 'Ready for liftoff!' },
+      { name: 'Rainbow', emoji: '🌈', color: '#7C3AED', imageUrl: '/static/images/characters/default/rainbow.png', unlockRequirement: 'streak_3', description: 'Unlocked with 3-day streak' },
+      { name: 'Lightning', emoji: '⚡', color: '#F59E0B', imageUrl: '/static/images/characters/default/lightning.png', unlockRequirement: 'points_250', description: 'Unlocked with 250 points' }
     ]
   },
 
@@ -53,14 +53,14 @@ const THEMES = {
       pointsEarn: '/static/sounds/minecraft-collect.mp3'
     },
     avatars: [
-      { name: 'Steve', emoji: '🧑‍🦰', color: '#00BFFF' },
-      { name: 'Alex', emoji: '👩‍🦰', color: '#FF6347' },
-      { name: 'Creeper', emoji: '💚', color: '#00FF00' },
-      { name: 'Enderman', emoji: '🖤', color: '#800080' },
-      { name: 'Zombie', emoji: '🧟', color: '#2E8B57' },
-      { name: 'Skeleton', emoji: '💀', color: '#F5F5F5' },
-      { name: 'Pig', emoji: '🐷', color: '#FFB6C1' },
-      { name: 'Diamond', emoji: '💎', color: '#00CED1' }
+      { name: 'Steve', emoji: '🧑‍🦰', color: '#00BFFF', imageUrl: '/static/images/characters/minecraft/steve.png', unlockRequirement: null, description: 'The classic miner' },
+      { name: 'Alex', emoji: '👩‍🦰', color: '#FF6347', imageUrl: '/static/images/characters/minecraft/alex.png', unlockRequirement: null, description: 'Ready to explore!' },
+      { name: 'Creeper', emoji: '💚', color: '#00FF00', imageUrl: '/static/images/characters/minecraft/creeper.png', unlockRequirement: 'streak_3', description: 'Sssssurprise! (3-day streak)' },
+      { name: 'Enderman', emoji: '🖤', color: '#800080', imageUrl: '/static/images/characters/minecraft/enderman.png', unlockRequirement: 'streak_7', description: 'Teleporter unlocked (7-day streak)' },
+      { name: 'Zombie', emoji: '🧟', color: '#2E8B57', imageUrl: '/static/images/characters/minecraft/zombie.png', unlockRequirement: 'tasks_25', description: 'Complete 25 tasks' },
+      { name: 'Skeleton', emoji: '💀', color: '#F5F5F5', imageUrl: '/static/images/characters/minecraft/skeleton.png', unlockRequirement: 'tasks_50', description: 'Complete 50 tasks' },
+      { name: 'Pig', emoji: '🐷', color: '#FFB6C1', imageUrl: '/static/images/characters/minecraft/pig.png', unlockRequirement: 'kindness_3', description: '3 acts of kindness' },
+      { name: 'Diamond', emoji: '💎', color: '#00CED1', imageUrl: '/static/images/characters/minecraft/diamond.png', unlockRequirement: 'points_1000', description: 'Elite status (1000 points)' }
     ]
   },
 
