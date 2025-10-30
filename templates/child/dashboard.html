@@ -70,11 +70,6 @@
                     <template x-if="!getAvatarImageUrl()">
                         <div class="text-8xl mb-3">
                             <span x-text="getAvatarEmoji()"></span>
-                            <div class="text-xs text-white opacity-75 mt-2">
-                                Debug: Avatar=<span x-text="currentAvatar"></span>,
-                                Theme=<span x-text="theme"></span>,
-                                URL=<span x-text="getAvatarImageUrl() || 'none'"></span>
-                            </div>
                         </div>
                     </template>
 
@@ -725,11 +720,18 @@ function childDashboard() {
 
         getAvatarImageUrl() {
             // Get the image URL for the current avatar
-            if (!this.currentTheme || !this.currentAvatar) {
+            if (!this.currentTheme || !this.currentTheme.avatars) {
                 return null;
             }
 
-            const avatarObj = this.currentTheme.avatars?.find(a => a.name === this.currentAvatar);
+            // If no avatar selected, use the first one from the theme
+            const avatarName = this.currentAvatar || this.currentTheme.avatars[0]?.name;
+
+            if (!avatarName) {
+                return null;
+            }
+
+            const avatarObj = this.currentTheme.avatars?.find(a => a.name === avatarName);
             return avatarObj?.imageUrl || null;
         },
 
@@ -1182,11 +1184,18 @@ function childDashboard() {
 
         getAvatarEmoji() {
             // Get the emoji for the current avatar from the theme config
-            if (!this.currentTheme || !this.currentAvatar) {
+            if (!this.currentTheme || !this.currentTheme.avatars) {
                 return '⭐'; // Default fallback
             }
 
-            const avatarObj = this.currentTheme.avatars?.find(a => a.name === this.currentAvatar);
+            // If no avatar selected, use the first one from the theme
+            const avatarName = this.currentAvatar || this.currentTheme.avatars[0]?.name;
+
+            if (!avatarName) {
+                return '⭐';
+            }
+
+            const avatarObj = this.currentTheme.avatars?.find(a => a.name === avatarName);
             return avatarObj?.emoji || '⭐';
         },
 
