@@ -2,12 +2,13 @@
 Approvals API endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from app.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.profile import Profile
 from app.models.task_approval import TaskApproval, ApprovalStatus
+from app.models.task import Task
 
 router = APIRouter()
 
@@ -19,17 +20,18 @@ async def get_approvals(
     """Get pending approval requests"""
     if not current_user or not current_user.family_id:
         return {"approvals": []}
-    
-    # Join through task to filter by family
-    approvals = db.query(TaskApproval).join(
-        TaskApproval.task
+
+    # Query approvals with eager loading of relationships
+    approvals = db.query(TaskApproval).options(
+        joinedload(TaskApproval.task),
+        joinedload(TaskApproval.child)
+    ).join(
+        Task, TaskApproval.task_id == Task.id
     ).filter(
-        TaskApproval.status == ApprovalStatus.PENDING
+        TaskApproval.status == ApprovalStatus.PENDING,
+        Task.family_id == current_user.family_id
     ).all()
 
-    # Filter approvals to only those in user's family
-    approvals = [a for a in approvals if a.task and a.task.family_id == current_user.family_id]
-    
     return {
         "approvals": [
             {
@@ -40,7 +42,7 @@ async def get_approvals(
                 "child_id": a.child_id,
                 "child_name": f"{a.child.first_name} {a.child.last_name}" if a.child else "Unknown",
                 "status": a.status.value,
-                "created_at": a.created_at.isoformat()
+                "created_at": a.requested_at.isoformat() if a.requested_at else ""
             }
             for a in approvals
         ]
