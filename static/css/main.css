@@ -455,3 +455,203 @@ select {
     font-size: 1.5rem;
   }
 }
+
+/* ====================================================================
+   ENHANCED AVATAR SELECTION SYSTEM
+   Improved avatar display with proper emoji styling
+   ==================================================================== */
+
+/* Theme Selector Wrapper */
+.theme-selector {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Avatar Section */
+.avatar-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+}
+
+/* Enhanced Avatar Grid */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Enhanced Avatar Option */
+.avatar-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  border: 3px solid #e5e7eb;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  position: relative;
+}
+
+.avatar-option:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-option.selected {
+  border-width: 4px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 215, 0, 0.1));
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.avatar-option.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: #10B981;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+/* Avatar Emoji Display */
+.avatar-emoji {
+  font-size: 3.5rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.avatar-option:hover .avatar-emoji {
+  transform: scale(1.15) rotate(5deg);
+}
+
+/* Avatar Name */
+.avatar-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  color: #1F2937;
+  margin-top: 0.5rem;
+}
+
+/* Avatar Extra (weapons, hats, etc.) */
+.avatar-extra {
+  font-size: 1.25rem;
+  margin-top: 0.25rem;
+  opacity: 0.7;
+}
+
+/* Theme Preview Icons */
+.theme-preview-icons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.preview-icon {
+  font-size: 2rem;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Theme Name in Cards */
+.theme-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Button Container for Theme Selector */
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.btn-cancel {
+  padding: 1rem 2rem;
+  background: #6B7280;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-cancel:hover {
+  background: #4B5563;
+  transform: translateY(-2px);
+}
+
+.btn-apply {
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #8B5CF6, #EC4899);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+.btn-apply:hover:not(.btn-disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 25px rgba(139, 92, 246, 0.6);
+}
+
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #9CA3AF;
+  box-shadow: none;
+}
+
+/* Responsive Design for Avatar Selection */
+@media (max-width: 768px) {
+  .theme-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .avatar-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .theme-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .avatar-emoji {
+    font-size: 2.5rem;
+  }
+
+  .button-container {
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-apply {
+    width: 100%;
+  }
+}

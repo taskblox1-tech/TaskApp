@@ -258,14 +258,27 @@
                         </h3>
 
                         <!-- Avatar Grid -->
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                        <div class="avatar-grid">
                             <template x-for="avatar in (selectedTheme && allThemes[selectedTheme] ? allThemes[selectedTheme].avatars : [])"
-                                      :key="avatar">
-                                <div @click="selectedAvatar = avatar"
-                                     class="cursor-pointer p-4 rounded-lg border-2 text-center transition-all hover:shadow-md"
-                                     :class="selectedAvatar === avatar ? 'border-purple-500 bg-purple-100' : 'border-gray-200 hover:border-purple-300'">
-                                    <div class="text-3xl mb-2">🎮</div>
-                                    <div class="text-sm font-medium" x-text="avatar"></div>
+                                      :key="avatar.name">
+                                <div @click="selectedAvatar = avatar.name"
+                                     class="avatar-option"
+                                     :class="selectedAvatar === avatar.name ? 'selected' : ''"
+                                     :style="'border-color: ' + (selectedAvatar === avatar.name ? avatar.color : '#e5e7eb')">
+                                    <!-- Avatar Emoji Display -->
+                                    <div class="avatar-emoji"
+                                         x-text="avatar.emoji"
+                                         :style="'color: ' + avatar.color">
+                                    </div>
+
+                                    <!-- Avatar Name -->
+                                    <div class="avatar-name" x-text="avatar.name"></div>
+
+                                    <!-- Extra Icon (for themes like Ninja Turtles with weapons) -->
+                                    <div class="avatar-extra"
+                                         x-show="avatar.weapon || avatar.hat"
+                                         x-text="avatar.weapon || avatar.hat">
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -373,7 +386,8 @@ function childDashboard() {
                 if (this.theme === themeName && this.currentAvatar) {
                     this.selectedAvatar = this.currentAvatar;
                 } else {
-                    this.selectedAvatar = this.allThemes[themeName].avatars[0];
+                    // Select first avatar's name
+                    this.selectedAvatar = this.allThemes[themeName].avatars[0].name;
                 }
             }
         },
