@@ -33,33 +33,33 @@
         </div>
     </header>
 
-    <!-- Points Banner with Big Avatar -->
+    <!-- Points Banner with Character Image -->
     <div class="text-white py-8" :style="'background: ' + (currentTheme ? currentTheme.colors.background : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)')">
         <div class="max-w-4xl mx-auto px-4">
             <div class="flex items-center justify-center gap-8 flex-wrap">
-                <!-- Big Character Avatar -->
-                <div class="character-avatar flex-shrink-0">
-                    <div class="avatar-circle" :style="'background: rgba(255, 255, 255, 0.2); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 0 5px rgba(255, 255, 255, 0.3);'">
-                        <!-- Show character image if available, otherwise show emoji -->
-                        <img x-show="getAvatarImageUrl()"
-                             :src="getAvatarImageUrl()"
-                             :alt="currentAvatar"
-                             class="avatar-image"
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                        <span x-show="!getAvatarImageUrl()" class="avatar-emoji" x-text="getAvatarEmoji()"></span>
-                    </div>
-                    <div class="avatar-label text-center mt-2 font-bold text-lg" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);"
-                         x-text="showChampionText ? '⭐ Champion' : (currentAvatar || 'Champion')"></div>
-                </div>
-
-                <!-- Points Display -->
+                <!-- Points Display with Character -->
                 <div class="points-display text-center flex-shrink-0">
-                    <div class="text-6xl font-bold mb-2" id="points-counter" style="text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);" x-text="totalPoints"></div>
-                    <div class="text-2xl font-semibold" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">
-                        <span x-text="currentTheme ? currentTheme.icons.points : '🌟'"></span>
-                        Total Points!
-                        <span x-text="currentTheme ? currentTheme.icons.points : '🌟'"></span>
+                    <div class="flex items-center justify-center gap-4 mb-2">
+                        <!-- Character Image (Full, Not Circular) -->
+                        <div x-show="getAvatarImageUrl()" class="character-image-container">
+                            <img :src="getAvatarImageUrl()"
+                                 :alt="currentAvatar"
+                                 class="character-full-image"
+                                 style="width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));">
+                        </div>
+                        <div x-show="!getAvatarImageUrl()" class="text-6xl" x-text="getAvatarEmoji()"></div>
+
+                        <!-- Points Counter -->
+                        <div>
+                            <div class="text-6xl font-bold" id="points-counter" style="text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);" x-text="totalPoints"></div>
+                            <div class="text-xl font-semibold" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">
+                                <span x-text="currentTheme ? currentTheme.icons.points : '🌟'"></span>
+                                Points!
+                            </div>
+                        </div>
                     </div>
+                    <div class="font-bold text-lg mt-2" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);"
+                         x-text="showChampionText ? '⭐ Champion' : (currentAvatar || 'Champion')"></div>
                 </div>
 
                 <!-- Streak Badge -->
@@ -1031,15 +1031,19 @@ function childDashboard() {
         
         filterTasks(type) {
             this.filter = type;
+            console.log('Filter changed to:', type, 'Tasks:', this.tasks.length);
         },
 
         filterByCategory(category) {
             this.categoryFilter = category;
+            console.log('Category filter changed to:', category, 'Filtered tasks:', this.filteredTasks.length);
         },
 
         getTasksForPeriod(period) {
             // Get tasks for a specific period (morning/evening/anytime)
-            return this.filteredTasks.filter(t => t.period === period);
+            const tasks = this.filteredTasks.filter(t => t.period === period);
+            console.log(`Tasks for ${period}:`, tasks.length, 'Sample task period:', this.filteredTasks[0]?.period);
+            return tasks;
         },
 
         hasVisibleTasks() {
