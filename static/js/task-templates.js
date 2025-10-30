@@ -4,21 +4,21 @@
  */
 
 const TASK_TEMPLATES = {
-    "Morning Tasks (Anyday)": [
+    "Morning Tasks": [
+        // Anyday morning tasks
         { title: "Eat Breakfast", icon: "🍳", points: 50, period: "morning", day_type: "anyday", requires_approval: false },
         { title: "Brush Teeth", icon: "🪥", points: 40, period: "morning", day_type: "anyday", requires_approval: false },
         { title: "Get Dressed", icon: "👕", points: 25, period: "morning", day_type: "anyday", requires_approval: false },
-        { title: "Take Medicine", icon: "💊", points: 60, period: "morning", day_type: "anyday", requires_approval: false }
-    ],
-
-    "Morning Tasks (Weekday)": [
+        { title: "Take Medicine", icon: "💊", points: 60, period: "morning", day_type: "anyday", requires_approval: false },
+        // Weekday morning tasks
         { title: "Backpack Organized", icon: "🎒", points: 30, period: "morning", day_type: "weekday", requires_approval: false },
         { title: "Socks and Shoes", icon: "🧦", points: 20, period: "morning", day_type: "weekday", requires_approval: false },
         { title: "Fill Water Bottle for School", icon: "💧", points: 30, period: "morning", day_type: "weekday", requires_approval: false },
         { title: "Perfect Morning Routine", icon: "⭐", points: 85, period: "morning", day_type: "weekday", requires_approval: true, description: "All morning tasks done without reminders" }
     ],
 
-    "Evening Tasks (Anyday)": [
+    "Evening Tasks": [
+        // Anyday evening tasks
         { title: "Doors Closed and Locked", icon: "🔒", points: 45, period: "evening", day_type: "anyday", requires_approval: false },
         { title: "Key Put Away", icon: "🔑", points: 25, period: "evening", day_type: "anyday", requires_approval: false },
         { title: "Shoes Put Away", icon: "👟", points: 30, period: "evening", day_type: "anyday", requires_approval: false },
@@ -26,15 +26,11 @@ const TASK_TEMPLATES = {
         { title: "Reading 15 Minutes", icon: "📚", points: 70, period: "evening", day_type: "anyday", requires_approval: false },
         { title: "Laundry in Basement", icon: "👔", points: 40, period: "evening", day_type: "anyday", requires_approval: false },
         { title: "Gate Closed", icon: "🚪", points: 35, period: "evening", day_type: "anyday", requires_approval: false },
-        { title: "Bedtime Routine On Time", icon: "🌙", points: 55, period: "evening", day_type: "anyday", requires_approval: false, description: "In bed at designated bedtime" }
-    ],
-
-    "Evening Tasks (Weekday)": [
+        { title: "Bedtime Routine On Time", icon: "🌙", points: 55, period: "evening", day_type: "anyday", requires_approval: false, description: "In bed at designated bedtime" },
+        // Weekday evening tasks
         { title: "Homework Completed", icon: "📚", points: 80, period: "evening", day_type: "weekday", requires_approval: false },
-        { title: "Study Session (30 min)", icon: "📖", points: 50, period: "evening", day_type: "weekday", requires_approval: false, description: "Focused studying without distractions" }
-    ],
-
-    "Evening Tasks (Weekend)": [
+        { title: "Study Session (30 min)", icon: "📖", points: 50, period: "evening", day_type: "weekday", requires_approval: false, description: "Focused studying without distractions" },
+        // Weekend evening tasks
         { title: "Family Time Activity", icon: "👨‍👩‍👧", points: 80, period: "evening", day_type: "weekend", requires_approval: true },
         { title: "Reading 30 Minutes", icon: "📖", points: 100, period: "evening", day_type: "weekend", requires_approval: false },
         { title: "Prepare for Next Week", icon: "📅", points: 50, period: "evening", day_type: "weekend", requires_approval: false }
@@ -74,7 +70,7 @@ const TASK_TEMPLATES = {
         { title: "Help with Chores", icon: "🏠", points: 70, period: "anytime", day_type: "anyday", requires_approval: false, description: "General household help" }
     ],
 
-    "Creative & Personal Development": [
+    "Creative & Development": [
         { title: "Practice Instrument", icon: "🎹", points: 60, period: "anytime", day_type: "anyday", requires_approval: false, description: "Music practice session" },
         { title: "Art/Drawing Project", icon: "🎨", points: 50, period: "anytime", day_type: "anyday", requires_approval: false, description: "Creative expression" },
         { title: "Journal Entry", icon: "📔", points: 40, period: "evening", day_type: "anyday", requires_approval: false, description: "Writing thoughts or daily reflection" },
