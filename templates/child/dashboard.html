@@ -3,7 +3,11 @@
 {% block title %}My Tasks{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50" x-data="childDashboard()">
+<!-- Theme and Animation Scripts -->
+<script src="/static/js/themes.js"></script>
+<script src="/static/js/animations.js"></script>
+
+<div class="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50" x-data="childDashboard()" :style="themeStyles">
     <!-- Header -->
     <header class="bg-white shadow-md">
         <div class="max-w-4xl mx-auto px-4 py-4">
@@ -18,10 +22,22 @@
     </header>
 
     <!-- Points Banner -->
-    <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-8">
+    <div class="text-white py-8" :style="'background: ' + (currentTheme ? currentTheme.colors.background : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)')">
         <div class="max-w-4xl mx-auto px-4 text-center">
-            <div class="text-6xl font-bold mb-2" x-text="totalPoints"></div>
-            <div class="text-xl">Total Points! 🌟</div>
+            <div class="text-6xl font-bold mb-2" id="points-counter" x-text="totalPoints"></div>
+            <div class="text-xl">
+                Total Points! <span x-text="currentTheme ? currentTheme.icons.points : '🌟'"></span>
+            </div>
+            <!-- Streak Badge -->
+            <div x-show="progressStats.current_streak > 0" class="streak-badge mt-4 inline-block">
+                <div class="flex items-center gap-2 bg-white bg-opacity-20 rounded-full px-6 py-2 backdrop-blur-sm">
+                    <span class="streak-fire text-3xl">🔥</span>
+                    <div class="text-left">
+                        <div class="text-2xl font-bold" x-text="progressStats.current_streak"></div>
+                        <div class="text-xs opacity-90">Day Streak!</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -119,9 +135,10 @@
                      :class="task.completed ? 'border-green-500 bg-green-50' : 'border-blue-500'">
                     <div class="flex items-center gap-4">
                         <!-- Checkbox/Icon -->
-                        <button @click="toggleTask(task)" 
-                                class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
-                                :class="task.completed ? 'bg-green-500 text-white' : 'bg-gray-200'">
+                        <button @click="toggleTask(task, $event)"
+                                :id="'task-button-' + task.id"
+                                class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all"
+                                :class="task.completed ? 'bg-green-500 text-white' : 'bg-gray-200 hover:scale-110'">
                             <span x-text="task.completed ? '✓' : task.icon"></span>
                         </button>
                         
@@ -177,6 +194,8 @@ function childDashboard() {
         childName: '',
         theme: '',
         themeIcon: '',
+        currentTheme: null,
+        themeStyles: '',
         totalPoints: 0,
         tasks: [],
         rewards: [],
@@ -218,12 +237,25 @@ function childDashboard() {
                 if (res.ok) {
                     const data = await res.json();
                     this.childName = data.name || 'Child';
-                    this.theme = data.theme || 'default';
+                    this.theme = data.theme || 'minecraft';
                     this.totalPoints = data.total_points || 0;
                     this.themeIcon = this.getThemeIcon(data.theme);
+
+                    // Apply theme styling
+                    if (typeof THEMES !== 'undefined' && THEMES[this.theme]) {
+                        this.currentTheme = THEMES[this.theme];
+                        this.applyTheme(this.theme);
+                    }
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
+            }
+        },
+
+        applyTheme(themeName) {
+            if (typeof applyThemeStyles === 'function') {
+                applyThemeStyles(themeName);
+                this.themeStyles = `background: ${this.currentTheme.colors.background}`;
             }
         },
 
@@ -284,11 +316,13 @@ function childDashboard() {
             }
         },
         
-        async toggleTask(task) {
+        async toggleTask(task, event) {
             if (task.completed) {
                 // Don't allow un-completing tasks
                 return;
             }
+
+            const button = event.currentTarget;
 
             try {
                 const res = await fetch(`/api/tasks/${task.id}/complete`, {
@@ -300,22 +334,63 @@ function childDashboard() {
                     const data = await res.json();
                     task.completed = true;
 
-                    if (data.requires_approval) {
-                        alert('✅ ' + data.message);
-                    } else {
+                    if (!data.requires_approval) {
+                        // Trigger animations!
+                        const pointsCounter = document.getElementById('points-counter');
+
+                        // Flying points animation
+                        if (typeof animatePoints === 'function') {
+                            animatePoints(data.points_earned, button, pointsCounter);
+                        }
+
+                        // Confetti burst
+                        if (typeof confettiBurst === 'function') {
+                            const rect = button.getBoundingClientRect();
+                            confettiBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                        }
+
+                        // Celebrate with theme effects
+                        if (typeof celebrate === 'function') {
+                            celebrate(button, data.points_earned, this.theme);
+                        }
+
+                        // Screen shake for high-value tasks
+                        if (data.points_earned >= 100 && typeof screenShake === 'function') {
+                            screenShake();
+                        }
+
+                        // Update points with animation
                         this.totalPoints += data.points_earned;
-                        alert('🎉 ' + data.message + ' You earned ' + data.points_earned + ' points!');
+
+                        // Toast notification
+                        if (typeof showToast === 'function') {
+                            showToast(`+${data.points_earned} points! ${data.message}`, 'success');
+                        }
+                    } else {
+                        if (typeof showToast === 'function') {
+                            showToast(data.message, 'info');
+                        } else {
+                            alert('✅ ' + data.message);
+                        }
                     }
 
                     // Reload progress stats to update display
                     await this.loadProgressStats();
                 } else {
                     const error = await res.json();
-                    alert('Error: ' + error.detail);
+                    if (typeof showToast === 'function') {
+                        showToast('Error: ' + error.detail, 'error');
+                    } else {
+                        alert('Error: ' + error.detail);
+                    }
                 }
             } catch (error) {
                 console.error('Error completing task:', error);
-                alert('Failed to complete task');
+                if (typeof showToast === 'function') {
+                    showToast('Failed to complete task', 'error');
+                } else {
+                    alert('Failed to complete task');
+                }
             }
         },
         
