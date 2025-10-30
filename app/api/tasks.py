@@ -125,6 +125,7 @@ async def complete_task(
 ):
     """Mark a task as complete"""
     from app.models.task_approval import TaskApproval, ApprovalStatus
+    from sqlalchemy.orm.attributes import flag_modified
 
     # Verify task exists and belongs to family
     task = db.query(Task).filter(
@@ -165,6 +166,7 @@ async def complete_task(
         if progress.pending_approval_ids is None:
             progress.pending_approval_ids = []
         progress.pending_approval_ids.append(task_id)
+        flag_modified(progress, 'pending_approval_ids')
 
         # Create approval request
         approval = TaskApproval(
@@ -183,6 +185,7 @@ async def complete_task(
             progress.completed_task_ids = []
         progress.completed_task_ids.append(task_id)
         progress.total_points += task.points
+        flag_modified(progress, 'completed_task_ids')
 
         # Update user's total points
         current_user.total_lifetime_points += task.points

@@ -57,6 +57,7 @@ async def approve_task(
 ):
     """Approve a task completion"""
     from app.models.daily_progress import DailyProgress
+    from sqlalchemy.orm.attributes import flag_modified
 
     if not current_user or not current_user.family_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -104,12 +105,14 @@ async def approve_task(
             progress.pending_approval_ids = []
         if approval.task_id in progress.pending_approval_ids:
             progress.pending_approval_ids.remove(approval.task_id)
+            flag_modified(progress, 'pending_approval_ids')
 
         if progress.completed_task_ids is None:
             progress.completed_task_ids = []
         if approval.task_id not in progress.completed_task_ids:
             progress.completed_task_ids.append(approval.task_id)
             progress.total_points += approval.task.points
+            flag_modified(progress, 'completed_task_ids')
 
     db.commit()
 
@@ -123,6 +126,9 @@ async def deny_task(
     db: Session = Depends(get_db)
 ):
     """Deny a task completion"""
+    from app.models.daily_progress import DailyProgress
+    from sqlalchemy.orm.attributes import flag_modified
+
     if not current_user or not current_user.family_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
@@ -138,10 +144,22 @@ async def deny_task(
 
     if not approval:
         raise HTTPException(status_code=404, detail="Approval not found")
-    
+
     approval.status = ApprovalStatus.DENIED
     approval.approved_by = current_user.id
     approval.approved_at = datetime.utcnow()
+
+    # Remove from pending approvals list so child can retry
+    if approval.child_id and approval.task_id:
+        progress = db.query(DailyProgress).filter(
+            DailyProgress.child_id == approval.child_id,
+            DailyProgress.date == approval.date_for
+        ).first()
+
+        if progress and progress.pending_approval_ids:
+            if approval.task_id in progress.pending_approval_ids:
+                progress.pending_approval_ids.remove(approval.task_id)
+                flag_modified(progress, 'pending_approval_ids')
 
     db.commit()
 
