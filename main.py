@@ -22,7 +22,7 @@ from app.models import (
 )
 
 # Import API routers
-from app.api import auth, tasks, approvals, progress, families, rewards
+from app.api import auth, tasks, approvals, progress, families, rewards, characters
 
 # Get settings instance
 settings = get_settings()
@@ -89,6 +89,7 @@ app.include_router(approvals.router, prefix="/api/approvals", tags=["Approvals"]
 app.include_router(progress.router, prefix="/api/progress", tags=["Progress"])
 app.include_router(families.router, prefix="/api/families", tags=["Families"])
 app.include_router(rewards.router, prefix="/api/rewards", tags=["Rewards"])
+app.include_router(characters.router, prefix="/api/characters", tags=["Characters"])
 
 
 # ==============================================================================

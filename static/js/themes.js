@@ -53,14 +53,9 @@ const THEMES = {
       pointsEarn: '/static/sounds/minecraft-collect.mp3'
     },
     avatars: [
-      { name: 'Steve', emoji: '🧑‍🦰', color: '#00BFFF', imageUrl: '/static/images/characters/minecraft/steve.png', unlockRequirement: null, description: 'The classic miner' },
-      { name: 'Alex', emoji: '👩‍🦰', color: '#FF6347', imageUrl: '/static/images/characters/minecraft/alex.png', unlockRequirement: null, description: 'Ready to explore!' },
-      { name: 'Creeper', emoji: '💚', color: '#00FF00', imageUrl: '/static/images/characters/minecraft/creeper.png', unlockRequirement: 'streak_3', description: 'Sssssurprise! (3-day streak)' },
-      { name: 'Enderman', emoji: '🖤', color: '#800080', imageUrl: '/static/images/characters/minecraft/enderman.png', unlockRequirement: 'streak_7', description: 'Teleporter unlocked (7-day streak)' },
-      { name: 'Zombie', emoji: '🧟', color: '#2E8B57', imageUrl: '/static/images/characters/minecraft/zombie.png', unlockRequirement: 'tasks_25', description: 'Complete 25 tasks' },
-      { name: 'Skeleton', emoji: '💀', color: '#F5F5F5', imageUrl: '/static/images/characters/minecraft/skeleton.png', unlockRequirement: 'tasks_50', description: 'Complete 50 tasks' },
-      { name: 'Pig', emoji: '🐷', color: '#FFB6C1', imageUrl: '/static/images/characters/minecraft/pig.png', unlockRequirement: 'kindness_3', description: '3 acts of kindness' },
-      { name: 'Diamond', emoji: '💎', color: '#00CED1', imageUrl: '/static/images/characters/minecraft/diamond.png', unlockRequirement: 'points_1000', description: 'Elite status (1000 points)' }
+      { name: 'Steve', emoji: '🧑‍🦰', color: '#00BFFF', imageUrl: '/static/images/characters/minecraft/Steve.jpg', unlockRequirement: null, description: 'The classic miner' },
+      { name: 'Alex', emoji: '👩‍🦰', color: '#FF6347', imageUrl: '/static/images/characters/minecraft/150 Pixel Alex.png', unlockRequirement: null, description: 'Ready to explore!' },
+      { name: 'Ari', emoji: '💜', color: '#9D4EDD', imageUrl: '/static/images/characters/minecraft/150 Pixel Ari.png', unlockRequirement: 'streak_3', description: 'New friend! (3-day streak)' }
     ]
   },
 
@@ -85,16 +80,16 @@ const THEMES = {
       pointsEarn: '/static/sounds/roblox-coin.mp3'
     },
     avatars: [
-      { name: 'Bacon Hair', emoji: '🟥', color: '#E31937' },
-      { name: 'Guest 666', emoji: '👻', color: '#666666' },
-      { name: 'Noob', emoji: '🟨', color: '#FFC90E' },
-      { name: 'Cool Kid', emoji: '😎', color: '#00A2FF' },
-      { name: 'Builder', emoji: '👷', color: '#FF6600' },
-      { name: 'Ninja', emoji: '🥷', color: '#000000' },
-      { name: 'Superhero', emoji: '🦸', color: '#DC143C' },
-      { name: 'Pro Gamer', emoji: '🎮', color: '#9B59B6' },
-      { name: 'Adventurer', emoji: '🗺️', color: '#228B22' },
-      { name: 'Robux King', emoji: '👑', color: '#FFD700' }
+      { name: 'Bacon Hair', emoji: '🟥', color: '#E31937', imageUrl: '/static/images/characters/roblox/Bacon Hair.png', unlockRequirement: null, description: 'Classic starter avatar' },
+      { name: 'Guest 666', emoji: '👻', color: '#666666', imageUrl: '/static/images/characters/roblox/Guest 666.png', unlockRequirement: null, description: 'Mysterious guest' },
+      { name: 'Noob', emoji: '🟨', color: '#FFC90E', imageUrl: '/static/images/characters/roblox/Noob.png', unlockRequirement: null, description: 'Everyone starts here!' },
+      { name: 'Cool Kid', emoji: '😎', color: '#00A2FF', imageUrl: '/static/images/characters/roblox/Cool Kid.jpg', unlockRequirement: 'streak_3', description: 'Maintain 3-day streak' },
+      { name: 'Builder', emoji: '👷', color: '#FF6600', imageUrl: '/static/images/characters/roblox/Builder.jpg', unlockRequirement: 'tasks_25', description: 'Complete 25 tasks' },
+      { name: 'Ninja', emoji: '🥷', color: '#000000', imageUrl: '/static/images/characters/roblox/Ninja.jpg', unlockRequirement: 'streak_7', description: 'Master 7-day streak' },
+      { name: 'Superhero', emoji: '🦸', color: '#DC143C', imageUrl: '/static/images/characters/roblox/Roblox Superhero.jpg', unlockRequirement: 'tasks_50', description: 'Complete 50 tasks' },
+      { name: 'Pro Gamer', emoji: '🎮', color: '#9B59B6', imageUrl: '/static/images/characters/roblox/Pro Gamer.jpg', unlockRequirement: 'points_500', description: 'Earn 500 points' },
+      { name: 'Adventurer', emoji: '🗺️', color: '#228B22', imageUrl: '/static/images/characters/roblox/Adventurer.png', unlockRequirement: 'kindness_3', description: '3 acts of kindness' },
+      { name: 'Robux King', emoji: '👑', color: '#FFD700', imageUrl: '/static/images/characters/roblox/Robux King.jpg', unlockRequirement: 'points_1000', description: 'Elite status (1000 points)' }
     ]
   },
 
@@ -119,10 +114,11 @@ const THEMES = {
       pointsEarn: '/static/sounds/barbie-yay.mp3'
     },
     avatars: [
-      { name: 'Classic Barbie', emoji: '👱‍♀️', color: '#FF69B4' },
-      { name: 'Princess', emoji: '👸', color: '#FFD700' },
-      { name: 'Mermaid', emoji: '🧜‍♀️', color: '#00CED1' },
-      { name: 'Astronaut', emoji: '👩‍🚀', color: '#4169E1' }
+      { name: 'Classic Barbie', emoji: '👱‍♀️', color: '#FF69B4', imageUrl: '/static/images/characters/barbie/Classic Barbie.jpeg', unlockRequirement: null, description: 'Iconic and fabulous!' },
+      { name: 'Princess', emoji: '👸', color: '#FFD700', imageUrl: '/static/images/characters/barbie/Princess Barbie.jpg', unlockRequirement: 'streak_3', description: 'Royal 3-day streak' },
+      { name: 'Mermaid', emoji: '🧜‍♀️', color: '#00CED1', imageUrl: '/static/images/characters/barbie/Mermaid Barbie.png', unlockRequirement: 'tasks_25', description: 'Dive into 25 tasks' },
+      { name: 'Astronaut', emoji: '👩‍🚀', color: '#4169E1', imageUrl: '/static/images/characters/barbie/Astronaut Barbie.jpg', unlockRequirement: 'points_500', description: 'Reach for the stars (500 points)' },
+      { name: 'Pink Dress', emoji: '💃', color: '#FFB6C1', imageUrl: '/static/images/characters/barbie/Pink Dress Barbie.jpg', unlockRequirement: 'kindness_3', description: 'Sparkle with 3 acts of kindness' }
     ]
   },
 
@@ -147,10 +143,10 @@ const THEMES = {
       pointsEarn: '/static/sounds/pokemon-level.mp3'
     },
     avatars: [
-      { name: 'Pikachu', emoji: '⚡', color: '#FFDE00' },
-      { name: 'Charizard', emoji: '🔥', color: '#FF4500' },
-      { name: 'Squirtle', emoji: '💧', color: '#1E90FF' },
-      { name: 'Bulbasaur', emoji: '🌿', color: '#32CD32' }
+      { name: 'Pikachu', emoji: '⚡', color: '#FFDE00', imageUrl: '/static/images/characters/pokemon/Pikachu.png', unlockRequirement: null, description: 'Electric starter!' },
+      { name: 'Squirtle', emoji: '💧', color: '#1E90FF', imageUrl: '/static/images/characters/pokemon/Squirtle.png', unlockRequirement: null, description: 'Water type hero' },
+      { name: 'Bulbasaur', emoji: '🌿', color: '#32CD32', imageUrl: '/static/images/characters/pokemon/Bulbasaur.jpg', unlockRequirement: 'streak_3', description: 'Grass power (3-day streak)' },
+      { name: 'Charizard', emoji: '🔥', color: '#FF4500', imageUrl: '/static/images/characters/pokemon/Charizard.png', unlockRequirement: 'points_500', description: 'Legendary fire power (500 points)' }
     ]
   },
 
@@ -175,10 +171,10 @@ const THEMES = {
       pointsEarn: '/static/sounds/turtle-ding.mp3'
     },
     avatars: [
-      { name: 'Leonardo', emoji: '🔵', color: '#0000FF', weapon: '⚔️' },
-      { name: 'Michelangelo', emoji: '🟠', color: '#FF8C00', weapon: '🥢' },
-      { name: 'Donatello', emoji: '🟣', color: '#800080', weapon: '🥍' },
-      { name: 'Raphael', emoji: '🔴', color: '#FF0000', weapon: '🗡️' }
+      { name: 'Leonardo', emoji: '🔵', color: '#0000FF', weapon: '⚔️', imageUrl: '/static/images/characters/ninjaturtles/Leonardo.jpg', unlockRequirement: null, description: 'Leader in blue' },
+      { name: 'Michelangelo', emoji: '🟠', color: '#FF8C00', weapon: '🥢', imageUrl: '/static/images/characters/ninjaturtles/Michelangelo.png', unlockRequirement: null, description: 'Party dude!' },
+      { name: 'Donatello', emoji: '🟣', color: '#800080', weapon: '🥍', imageUrl: '/static/images/characters/ninjaturtles/Donatello.jpg', unlockRequirement: 'tasks_25', description: 'Tech genius (25 tasks)' },
+      { name: 'Raphael', emoji: '🔴', color: '#FF0000', weapon: '🗡️', imageUrl: '/static/images/characters/ninjaturtles/Rafael.jpg', unlockRequirement: 'streak_5', description: 'Cool but rude (5-day streak)' }
     ]
   },
 
@@ -203,16 +199,16 @@ const THEMES = {
       pointsEarn: '/static/sounds/mario-powerup.mp3'
     },
     avatars: [
-      { name: 'Mario', emoji: '🔴', color: '#E52521', hat: '🧢' },
-      { name: 'Luigi', emoji: '🟢', color: '#00A550', hat: '🧢' },
-      { name: 'Princess Peach', emoji: '👸', color: '#FFB7C5', hat: '👑' },
-      { name: 'Yoshi', emoji: '🦖', color: '#00A550', hat: '' },
-      { name: 'Toad', emoji: '🍄', color: '#FF0000', hat: '' },
-      { name: 'Bowser', emoji: '🐲', color: '#228B22', hat: '' },
-      { name: 'Wario', emoji: '🟡', color: '#FFD700', hat: '🧢' },
-      { name: 'Princess Daisy', emoji: '🌼', color: '#FFA500', hat: '👑' },
-      { name: 'Waluigi', emoji: '🟣', color: '#800080', hat: '🧢' },
-      { name: 'Donkey Kong', emoji: '🦍', color: '#8B4513', hat: '' }
+      { name: 'Mario', emoji: '🔴', color: '#E52521', hat: '🧢', imageUrl: '/static/images/characters/mario/Baby Mario.jpg', unlockRequirement: null, description: "It's-a me, Mario!" },
+      { name: 'Luigi', emoji: '🟢', color: '#00A550', hat: '🧢', imageUrl: '/static/images/characters/mario/Luigi.jpg', unlockRequirement: null, description: 'Player 2 ready!' },
+      { name: 'Princess Peach', emoji: '👸', color: '#FFB7C5', hat: '👑', imageUrl: '/static/images/characters/mario/Princess Peach.png', unlockRequirement: 'streak_3', description: 'Royal rescue (3-day streak)' },
+      { name: 'Yoshi', emoji: '🦖', color: '#00A550', hat: '', imageUrl: '/static/images/characters/mario/Yoshi.jpg', unlockRequirement: 'tasks_25', description: 'Loyal companion (25 tasks)' },
+      { name: 'Toad', emoji: '🍄', color: '#FF0000', hat: '', imageUrl: '/static/images/characters/mario/Toad.png', unlockRequirement: 'kindness_3', description: 'Helpful friend (3 acts of kindness)' },
+      { name: 'Bowser', emoji: '🐲', color: '#228B22', hat: '', imageUrl: '/static/images/characters/mario/Bowser.jpg', unlockRequirement: 'tasks_50', description: 'Conquer 50 tasks' },
+      { name: 'Wario', emoji: '🟡', color: '#FFD700', hat: '🧢', imageUrl: '/static/images/characters/mario/Wario.png', unlockRequirement: 'points_500', description: 'Greedy for points (500)' },
+      { name: 'Princess Daisy', emoji: '🌼', color: '#FFA500', hat: '👑', imageUrl: '/static/images/characters/mario/Princess Daisy.png', unlockRequirement: 'streak_7', description: 'Week-long champion' },
+      { name: 'Waluigi', emoji: '🟣', color: '#800080', hat: '🧢', imageUrl: '/static/images/characters/mario/Waluigi.png', unlockRequirement: 'tasks_75', description: 'Wicked skills (75 tasks)' },
+      { name: 'Donkey Kong', emoji: '🦍', color: '#8B4513', hat: '', imageUrl: '/static/images/characters/mario/Donkey Kong.png', unlockRequirement: 'points_1000', description: 'Jungle legend (1000 points)' }
     ]
   }
 };
