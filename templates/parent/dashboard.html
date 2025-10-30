@@ -159,12 +159,54 @@
                 <div x-show="activeTab === 'tasks'">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold">All Family Tasks</h2>
-                        <button
-                            @click="showTaskModal = true"
-                            class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2"
-                        >
-                            <span>➕</span> Create Task
-                        </button>
+                        <div class="flex gap-2">
+                            <button
+                                @click="selectionMode = !selectionMode; if (!selectionMode) selectedTaskIds = []"
+                                class="px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+                                :class="selectionMode ? 'bg-gray-600 text-white hover:bg-gray-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                            >
+                                <span x-text="selectionMode ? '✓' : '☐'"></span>
+                                <span x-text="selectionMode ? 'Cancel' : 'Select'"></span>
+                            </button>
+                            <button
+                                @click="showTaskModal = true"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2"
+                            >
+                                <span>➕</span> Create Task
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Actions Toolbar -->
+                    <div x-show="selectionMode && selectedTaskIds.length > 0" class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div class="font-medium text-blue-900">
+                                <span x-text="selectedTaskIds.length"></span> task<span x-show="selectedTaskIds.length !== 1">s</span> selected
+                            </div>
+                            <div class="flex gap-2">
+                                <button @click="bulkAssignTasks()"
+                                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                                    Assign Selected
+                                </button>
+                                <button @click="bulkDeleteTasks()"
+                                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                                    Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Select All Checkbox -->
+                    <div x-show="selectionMode && tasks.length > 0" class="mb-3">
+                        <label class="flex items-center p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200">
+                            <input
+                                type="checkbox"
+                                @change="toggleSelectAll($event.target.checked)"
+                                :checked="selectedTaskIds.length === tasks.length && tasks.length > 0"
+                                class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            >
+                            <span class="ml-3 font-medium text-gray-700">Select All</span>
+                        </label>
                     </div>
 
                     <!-- Empty State -->
@@ -183,9 +225,18 @@
                     <!-- Tasks List -->
                     <div x-show="tasks.length > 0" class="space-y-3">
                         <template x-for="task in tasks" :key="task.id">
-                            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+                            <div class="bg-gray-50 rounded-lg p-4 border-2"
+                                 :class="selectedTaskIds.includes(task.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'">
                                 <div class="flex justify-between items-start gap-4">
                                     <div class="flex items-center gap-3 flex-1">
+                                        <!-- Checkbox in selection mode -->
+                                        <input
+                                            x-show="selectionMode"
+                                            type="checkbox"
+                                            :checked="selectedTaskIds.includes(task.id)"
+                                            @change="toggleTaskSelection(task.id)"
+                                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        >
                                         <span class="text-2xl" x-text="task.icon"></span>
                                         <div class="flex-1">
                                             <h3 class="font-bold" x-text="task.title"></h3>
@@ -195,9 +246,13 @@
                                                 <span class="font-bold text-purple-600" x-text="task.points + ' pts'"></span>
                                                 <span x-show="task.requires_approval" class="ml-2 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">Needs Approval</span>
                                             </p>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                <span class="font-medium">Assigned to:</span> <span x-text="getAssignedChildrenNames(task.id)"></span>
+                                            </p>
                                         </div>
                                     </div>
-                                    <div class="flex gap-2 flex-shrink-0">
+                                    <!-- Action buttons (hidden in selection mode) -->
+                                    <div x-show="!selectionMode" class="flex gap-2 flex-shrink-0">
                                         <button @click="openAssignModal(task)"
                                                 class="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
                                             Assign
@@ -625,6 +680,56 @@
             </form>
         </div>
     </div>
+
+    <!-- Bulk Assign Tasks Modal -->
+    <div x-show="showBulkAssignModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="showBulkAssignModal = false">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Assign Multiple Tasks</h2>
+                <button @click="showBulkAssignModal = false" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-gray-600 mb-2">Assigning <span class="font-bold" x-text="selectedTaskIds.length"></span> task<span x-show="selectedTaskIds.length !== 1">s</span></p>
+            </div>
+
+            <form @submit.prevent="confirmBulkAssign()" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Children:</label>
+                    <div class="space-y-2">
+                        <template x-for="child in children" :key="child.id">
+                            <label class="flex items-center p-2 hover:bg-gray-50 rounded">
+                                <input
+                                    type="checkbox"
+                                    :value="child.id"
+                                    x-model="bulkAssignedChildren"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                >
+                                <span class="ml-2 text-sm" x-text="child.first_name + ' ' + child.last_name"></span>
+                            </label>
+                        </template>
+                        <p x-show="children.length === 0" class="text-sm text-gray-500">No children added yet.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button
+                        type="button"
+                        @click="showBulkAssignModal = false"
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        Assign All
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -639,10 +744,15 @@ function parentDashboard() {
         showTaskModal: false,
         showRewardModal: false,
         showAssignModal: false,
+        showBulkAssignModal: false,
         editingTask: null,
         editingReward: null,
         assigningTask: null,
         assignedChildren: [],
+        bulkAssignedChildren: [],
+        selectionMode: false,
+        selectedTaskIds: [],
+        taskAssignments: {},
         taskStep: 1,
         taskCategories: [],
         selectedTaskCategory: '',
@@ -662,7 +772,7 @@ function parentDashboard() {
             name: '',
             icon: '🎁',
             cost: 100,
-            type: 'prize'
+            type: 'special'
         },
         stats: {
             totalTasks: 0,
@@ -718,6 +828,9 @@ function parentDashboard() {
                     const data = await tasksRes.json();
                     this.tasks = data.tasks || [];
                     this.stats.totalTasks = this.tasks.length;
+
+                    // Load assignments for all tasks
+                    await this.loadTaskAssignments();
                 }
 
                 const approvalsRes = await fetch('/api/approvals/', {
@@ -740,6 +853,39 @@ function parentDashboard() {
             } catch (error) {
                 console.error('Error loading data:', error);
             }
+        },
+
+        async loadTaskAssignments() {
+            try {
+                const assignmentPromises = this.tasks.map(task =>
+                    fetch(`/api/tasks/${task.id}/assignments`, {
+                        credentials: 'same-origin'
+                    }).then(res => res.ok ? res.json() : { assigned_child_ids: [] })
+                      .then(data => ({ taskId: task.id, childIds: data.assigned_child_ids || [] }))
+                );
+
+                const assignments = await Promise.all(assignmentPromises);
+
+                // Store assignments in a map for quick lookup
+                this.taskAssignments = {};
+                assignments.forEach(({ taskId, childIds }) => {
+                    this.taskAssignments[taskId] = childIds;
+                });
+            } catch (error) {
+                console.error('Error loading task assignments:', error);
+            }
+        },
+
+        getAssignedChildrenNames(taskId) {
+            const childIds = this.taskAssignments[taskId] || [];
+            if (childIds.length === 0) return 'Not assigned';
+
+            const names = childIds.map(childId => {
+                const child = this.children.find(c => c.id === childId);
+                return child ? child.first_name : null;
+            }).filter(name => name !== null);
+
+            return names.length > 0 ? names.join(', ') : 'Not assigned';
         },
         
         getThemeIcon(theme) {
@@ -1104,8 +1250,119 @@ function parentDashboard() {
                 name: '',
                 icon: '🎁',
                 cost: 100,
-                type: 'prize'
+                type: 'special'
             };
+        },
+
+        // Bulk Selection Functions
+        toggleTaskSelection(taskId) {
+            const index = this.selectedTaskIds.indexOf(taskId);
+            if (index === -1) {
+                this.selectedTaskIds.push(taskId);
+            } else {
+                this.selectedTaskIds.splice(index, 1);
+            }
+        },
+
+        toggleSelectAll(checked) {
+            if (checked) {
+                this.selectedTaskIds = this.tasks.map(task => task.id);
+            } else {
+                this.selectedTaskIds = [];
+            }
+        },
+
+        async bulkAssignTasks() {
+            if (this.selectedTaskIds.length === 0) {
+                alert('Please select tasks to assign');
+                return;
+            }
+
+            // Reset bulk assignment children
+            this.bulkAssignedChildren = [];
+            // Open a bulk assignment modal
+            this.showBulkAssignModal = true;
+        },
+
+        async confirmBulkAssign() {
+            if (this.bulkAssignedChildren.length === 0) {
+                alert('Please select at least one child');
+                return;
+            }
+
+            try {
+                // Assign all selected tasks to the selected children
+                const assignPromises = this.selectedTaskIds.map(taskId =>
+                    fetch(`/api/tasks/${taskId}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            assigned_to: this.bulkAssignedChildren
+                        })
+                    })
+                );
+
+                const results = await Promise.all(assignPromises);
+
+                const successCount = results.filter(r => r.ok).length;
+                const failCount = this.selectedTaskIds.length - successCount;
+
+                if (failCount > 0) {
+                    alert(`✅ ${successCount} task(s) assigned, ❌ ${failCount} failed`);
+                } else {
+                    alert(`✅ ${successCount} task(s) assigned successfully!`);
+                }
+
+                this.showBulkAssignModal = false;
+                this.bulkAssignedChildren = [];
+                this.selectedTaskIds = [];
+                this.selectionMode = false;
+                await this.loadData();
+            } catch (error) {
+                console.error('Error bulk assigning tasks:', error);
+                alert('Failed to assign tasks');
+            }
+        },
+
+        async bulkDeleteTasks() {
+            if (this.selectedTaskIds.length === 0) {
+                alert('Please select tasks to delete');
+                return;
+            }
+
+            const count = this.selectedTaskIds.length;
+            if (!confirm(`Are you sure you want to delete ${count} task${count !== 1 ? 's' : ''}?`)) {
+                return;
+            }
+
+            try {
+                // Delete all selected tasks
+                const deletePromises = this.selectedTaskIds.map(taskId =>
+                    fetch(`/api/tasks/${taskId}`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin'
+                    })
+                );
+
+                const results = await Promise.all(deletePromises);
+
+                const successCount = results.filter(r => r.ok).length;
+                const failCount = count - successCount;
+
+                if (failCount > 0) {
+                    alert(`✅ ${successCount} task(s) deleted, ❌ ${failCount} failed`);
+                } else {
+                    alert(`✅ ${successCount} task(s) deleted successfully!`);
+                }
+
+                this.selectedTaskIds = [];
+                this.selectionMode = false;
+                await this.loadData();
+            } catch (error) {
+                console.error('Error bulk deleting tasks:', error);
+                alert('Failed to delete tasks');
+            }
         }
     }
 }
