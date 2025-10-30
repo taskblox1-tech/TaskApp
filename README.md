@@ -4,6 +4,24 @@ A comprehensive gamified task management system for families with 60+ pre-loaded
 
 ## ✨ Latest Updates
 
+### 📈 Comprehensive Analytics System (New!)
+**Detailed Progress Tracking:**
+- **Multi-Period Analytics**: View stats by day, week, month, year, or all-time
+- **Breakdown by Time of Day**: See morning vs evening vs anytime task completion
+- **Category Analytics**: Track performance across all task categories
+- **Individual & Family Views**: Analyze each child separately or view family totals
+- **Trend Visualizations**: Daily breakdown charts for spotting patterns
+- **Key Metrics**:
+  - Total tasks completed and points earned
+  - Average tasks and points per day
+  - Completion percentages
+  - Best performing days
+  - Current and longest streaks
+- **API Endpoints**:
+  - `/api/analytics/child/{id}?period=week` - Individual child analytics
+  - `/api/analytics/family?period=month` - Family-wide analytics
+  - `/api/analytics/trends/{id}?days=30` - Trend data for charts
+
 ### 🎨 Theme System with Animations & Streaks (New!)
 **Gamified Experience for Kids:**
 - **5 Engaging Themes**: Minecraft, Roblox, Barbie, Pokémon, Ninja Turtles
@@ -227,14 +245,16 @@ family-task-tracker/
 │   │   ├── tasks.py           # Task CRUD, completion with streak tracking, templates, assignments, bulk operations
 │   │   ├── approvals.py       # Task approval workflow
 │   │   ├── rewards.py         # Reward CRUD operations
-│   │   └── families.py        # Family join codes, family members list with last login
+│   │   ├── families.py        # Family join codes, family members list with last login
+│   │   └── analytics.py       # Analytics endpoints (child, family, trends)
 │   ├── core/                   # Security, dependencies
 │   ├── models/                 # Database models
 │   │   ├── task.py            # Task model with approval field
 │   │   ├── profile.py         # User/child profiles with theme, avatar, streaks
 │   │   ├── family.py          # Family with join codes
 │   │   ├── daily_progress.py  # Daily completion tracking
-│   │   └── task_approval.py   # Approval requests
+│   │   ├── task_approval.py   # Approval requests
+│   │   └── task_completion.py # Detailed completion records for analytics
 │   ├── config.py               # Environment settings
 │   ├── database.py             # PostgreSQL connection
 │   └── main.py                 # FastAPI app

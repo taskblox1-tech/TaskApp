@@ -229,6 +229,21 @@ async def complete_task(
         # Update streak
         streak_count = update_streak(current_user, db)
 
+        # Record detailed completion for analytics
+        from app.models.task_completion import TaskCompletion
+        completion_record = TaskCompletion(
+            child_id=current_user.id,
+            task_id=task.id,
+            family_id=current_user.family_id,
+            task_title=task.title,
+            task_category=task.category.value if hasattr(task.category, 'value') else str(task.category),
+            task_period=task.period.value if hasattr(task.period, 'value') else str(task.period),
+            points_earned=task.points,
+            completion_date=today,
+            required_approval=0
+        )
+        db.add(completion_record)
+
         db.commit()
 
         return {

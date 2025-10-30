@@ -13,12 +13,13 @@ from app.database import engine, Base
 
 # Import all models to ensure they're registered
 from app.models import (
-    Family, Profile, Task, TaskAssignment, 
+    Family, Profile, Task, TaskAssignment,
     TaskApproval, DailyProgress, Reward
 )
+from app.models.task_completion import TaskCompletion
 
 # Import API routers
-from app.api import auth, tasks, approvals, progress, families, rewards
+from app.api import auth, tasks, approvals, progress, families, rewards, analytics
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -56,6 +57,7 @@ app.include_router(approvals.router, prefix="/api/approvals", tags=["approvals"]
 app.include_router(progress.router, prefix="/api/progress", tags=["progress"])
 app.include_router(families.router, prefix="/api/families", tags=["families"])
 app.include_router(rewards.router, prefix="/api/rewards", tags=["rewards"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
 
 @app.on_event("startup")
