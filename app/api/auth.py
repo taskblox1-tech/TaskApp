@@ -3,6 +3,7 @@ Authentication API endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.database import get_db
 from app.models.profile import Profile
 from app.models.family import Family
@@ -126,13 +127,17 @@ async def login(
         )
     
     # Verify password
-   
+
     if not verify_password(credentials.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-    
+
+    # Update last login timestamp
+    user.last_login = datetime.utcnow()
+    db.commit()
+
     # Create access token
     access_token = create_access_token(data={"sub": user.id})
 
@@ -252,10 +257,18 @@ async def get_children_stats(
         pending_approvals_count = len(today_progress.pending_approval_ids) if today_progress and today_progress.pending_approval_ids else 0
 
         # Get total rewards claimed (count all redeemed rewards across all days)
-        total_rewards_claimed = db.query(func.count(func.distinct(func.json_each(DailyProgress.redeemed_reward_ids)))).filter(
+        # Fetch all daily progress records with redeemed rewards
+        all_progress = db.query(DailyProgress).filter(
             DailyProgress.child_id == child.id,
             DailyProgress.redeemed_reward_ids.isnot(None)
-        ).scalar() or 0
+        ).all()
+
+        # Count unique rewards across all days
+        all_rewards = set()
+        for progress in all_progress:
+            if progress.redeemed_reward_ids:
+                all_rewards.update(progress.redeemed_reward_ids)
+        total_rewards_claimed = len(all_rewards)
 
         # Get tasks assigned to this child
         assigned_tasks_count = db.query(TaskAssignment).filter(

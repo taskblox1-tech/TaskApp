@@ -30,6 +30,7 @@ class Profile(Base):
     avatar_url = Column(String(500))
     total_lifetime_points = Column(Integer, default=0, nullable=False)
     is_active = Column(Integer, default=1, nullable=False)
+    last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
