@@ -1129,7 +1129,7 @@ function parentDashboard() {
                 hour: '2-digit',
                 minute: '2-digit'
             };
-            this.currentDateTime = now.toLocaleDateString('en-US', options);
+            this.currentDateTime = now.toLocaleString('en-US', options);
         },
 
         async loadFamilyInfo() {
