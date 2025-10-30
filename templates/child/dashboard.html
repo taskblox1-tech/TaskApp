@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}My Tasks{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50" x-data="childDashboard()">
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold" x-text="'Hi, ' + childName + '! ' + themeIcon"></h1>
+                    <p class="text-sm text-gray-600" x-text="'Theme: ' + theme"></p>
+                </div>
+                <button @click="logout()" class="text-sm text-red-600 hover:text-red-800">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Points Banner -->
+    <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-8">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <div class="text-6xl font-bold mb-2" x-text="totalPoints"></div>
+            <div class="text-xl">Total Points! 🌟</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        
+        <!-- Today's Progress -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">📅 Today's Progress</h2>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-3xl font-bold text-green-600" x-text="todayStats.completed"></div>
+                    <div class="text-sm text-gray-600">Completed</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-600" x-text="todayStats.pointsEarned"></div>
+                    <div class="text-sm text-gray-600">Points Earned</div>
+                </div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+                <div class="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full transition-all" 
+                     :style="`width: ${progressPercent}%`"></div>
+            </div>
+            <div class="text-center text-sm text-gray-600 mt-2" x-text="progressPercent + '% Complete'"></div>
+        </div>
+
+        <!-- Task Filters -->
+        <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <button @click="filterTasks('all')" 
+                    :class="filter === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
+                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                All Tasks
+            </button>
+            <button @click="filterTasks('morning')" 
+                    :class="filter === 'morning' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
+                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                🌅 Morning
+            </button>
+            <button @click="filterTasks('evening')" 
+                    :class="filter === 'evening' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
+                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                🌙 Evening
+            </button>
+            <button @click="filterTasks('anytime')" 
+                    :class="filter === 'anytime' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
+                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                ⭐ Anytime
+            </button>
+        </div>
+
+        <!-- Tasks List -->
+        <div class="space-y-3">
+            <template x-for="task in filteredTasks" :key="task.id">
+                <div class="bg-white rounded-lg shadow-lg p-4 border-l-4"
+                     :class="task.completed ? 'border-green-500 bg-green-50' : 'border-blue-500'">
+                    <div class="flex items-center gap-4">
+                        <!-- Checkbox/Icon -->
+                        <button @click="toggleTask(task)" 
+                                class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+                                :class="task.completed ? 'bg-green-500 text-white' : 'bg-gray-200'">
+                            <span x-text="task.completed ? '✓' : task.icon"></span>
+                        </button>
+                        
+                        <!-- Task Info -->
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg" 
+                                :class="task.completed ? 'line-through text-gray-500' : ''"
+                                x-text="task.title"></h3>
+                            <div class="flex gap-2 text-sm text-gray-600">
+                                <span class="capitalize" x-text="task.period"></span>
+                                <span>•</span>
+                                <span class="font-bold text-purple-600" x-text="task.points + ' pts'"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Approval Badge -->
+                        <div x-show="task.requires_approval && task.completed" 
+                             class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
+                            Pending Approval
+                        </div>
+                    </div>
+                </div>
+            </template>
+            
+            <div x-show="filteredTasks.length === 0" class="text-center py-12 text-gray-500">
+                No tasks for this filter
+            </div>
+        </div>
+
+        <!-- Rewards Preview -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4">🎁 Available Rewards</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <template x-for="reward in rewards.slice(0, 6)" :key="reward.id">
+                    <div class="text-center p-4 bg-gray-50 rounded-lg border-2"
+                         :class="totalPoints >= reward.cost ? 'border-green-500' : 'border-gray-200'">
+                        <div class="text-3xl mb-2" x-text="reward.icon"></div>
+                        <div class="font-medium text-sm mb-1" x-text="reward.name"></div>
+                        <div class="text-xs font-bold" 
+                             :class="totalPoints >= reward.cost ? 'text-green-600' : 'text-gray-600'"
+                             x-text="reward.cost + ' pts'"></div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+function childDashboard() {
+    return {
+        childName: '',
+        theme: '',
+        themeIcon: '',
+        totalPoints: 0,
+        tasks: [],
+        rewards: [],
+        filter: 'all',
+        todayStats: {
+            completed: 0,
+            pointsEarned: 0
+        },
+        
+        get filteredTasks() {
+            if (this.filter === 'all') return this.tasks;
+            return this.tasks.filter(t => t.period === this.filter);
+        },
+        
+        get progressPercent() {
+            if (this.tasks.length === 0) return 0;
+            return Math.round((this.todayStats.completed / this.tasks.length) * 100);
+        },
+        
+        async init() {
+            await this.loadProfile();
+            await this.loadTasks();
+            await this.loadRewards();
+        },
+        
+        async loadProfile() {
+            try {
+                const res = await fetch('/api/auth/me', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.childName = data.name || 'Child';
+                    this.theme = data.theme || 'default';
+                    this.totalPoints = data.total_points || 0;
+                    this.themeIcon = this.getThemeIcon(data.theme);
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        },
+
+        async loadTasks() {
+            try {
+                const res = await fetch('/api/tasks', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.tasks = (data.tasks || []).map(t => ({
+                        ...t,
+                        completed: false
+                    }));
+                    this.updateStats();
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        },
+
+        async loadRewards() {
+            try {
+                const res = await fetch('/api/rewards', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.rewards = data.rewards || [];
+                }
+            } catch (error) {
+                console.error('Error loading rewards:', error);
+            }
+        },
+        
+        async toggleTask(task) {
+            if (task.completed) {
+                // Don't allow un-completing tasks
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/tasks/${task.id}/complete`, {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    task.completed = true;
+                    this.updateStats();
+
+                    if (data.requires_approval) {
+                        alert('✅ ' + data.message);
+                    } else {
+                        this.totalPoints += data.points_earned;
+                        alert('🎉 ' + data.message + ' You earned ' + data.points_earned + ' points!');
+                    }
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error completing task:', error);
+                alert('Failed to complete task');
+            }
+        },
+        
+        updateStats() {
+            this.todayStats.completed = this.tasks.filter(t => t.completed).length;
+            this.todayStats.pointsEarned = this.tasks
+                .filter(t => t.completed)
+                .reduce((sum, t) => sum + t.points, 0);
+        },
+        
+        filterTasks(type) {
+            this.filter = type;
+        },
+        
+        getThemeIcon(theme) {
+            const icons = {
+                minecraft: '⛏️',
+                barbie: '👗',
+                pokemon: '⚡',
+                mario: '🍄',
+                princess: '👑',
+                sports: '⚽',
+                space: '🚀',
+                unicorn: '🦄',
+                dinosaur: '🦕',
+                ocean: '🌊'
+            };
+            return icons[theme] || '⭐';
+        },
+        
+        async logout() {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+            window.location.href = '/login';
+        }
+    }
+}
+</script>
+{% endblock %}

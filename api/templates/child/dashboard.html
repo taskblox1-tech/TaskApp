@@ -1,0 +1,267 @@
+<!-- ==================================================================== -->
+<!-- FILE: templates/child/dashboard.html -->
+<!-- Child dashboard with themed task display -->
+<!-- ==================================================================== -->
+
+{% extends "base.html" %}
+
+{% block title %}My Tasks - {{ user.first_name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6" x-data="taskDashboard()">
+    
+    <!-- Welcome Header with Points -->
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex justify-between items-center flex-wrap gap-4">
+            <div>
+                <h1 class="text-3xl font-bold">Hi, {{ user.first_name }}! 👋</h1>
+                <p class="text-blue-100">{{ progress.date.strftime('%A, %B %d, %Y') }}</p>
+            </div>
+            <div class="text-right">
+                <div class="text-5xl font-bold">⭐ <span x-text="points"></span></div>
+                <div class="text-sm text-blue-100">points today</div>
+            </div>
+        </div>
+        
+        <!-- Lifetime Points -->
+        <div class="mt-4 bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-xs text-blue-100">Lifetime Points</div>
+                    <div class="text-2xl font-bold">{{ user.total_lifetime_points | format_points }}</div>
+                </div>
+                <div class="text-4xl">🏆</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Morning Tasks -->
+    {% if morning_tasks %}
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">🌅</span>
+            <h2 class="text-2xl font-bold text-gray-800">Morning Tasks</h2>
+            <span class="text-sm text-gray-500">({{ morning_tasks|length }})</span>
+        </div>
+        
+        <div class="space-y-3">
+            {% for task in morning_tasks %}
+            <div class="task-card border-2 rounded-lg p-4 hover:shadow-md transition-all
+                        {% if task.id in completed_ids %}bg-green-50 border-green-300{% elif task.id in pending_ids %}bg-yellow-50 border-yellow-300{% else %}bg-white border-gray-200{% endif %}">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 flex-1">
+                        <!-- Checkbox or Status Icon -->
+                        {% if task.id in completed_ids %}
+                            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                ✓
+                            </div>
+                        {% elif task.id in pending_ids %}
+                            <div class="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-white">
+                                ⏳
+                            </div>
+                        {% elif task.requires_approval %}
+                            <button 
+                                @click="requestApproval({{ task.id }}, '{{ task.title }}')"
+                                class="w-6 h-6 rounded border-2 border-gray-300 hover:border-blue-500 transition-colors"
+                            ></button>
+                        {% else %}
+                            <button 
+                                @click="completeTask({{ task.id }})"
+                                class="w-6 h-6 rounded border-2 border-gray-300 hover:border-green-500 transition-colors"
+                            ></button>
+                        {% endif %}
+                        
+                        <!-- Task Info -->
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl">{{ task.icon }}</span>
+                                <span class="font-medium text-gray-800">{{ task.title }}</span>
+                            </div>
+                            {% if task.description %}
+                            <p class="text-sm text-gray-500 ml-8">{{ task.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Points Badge -->
+                    <div class="flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
+                            +{{ task.points }} pts
+                        </span>
+                        {% if task.requires_approval %}
+                        <span class="text-xs text-gray-500" title="Requires approval">🔔</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Evening Tasks -->
+    {% if evening_tasks %}
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">🌙</span>
+            <h2 class="text-2xl font-bold text-gray-800">Evening Tasks</h2>
+            <span class="text-sm text-gray-500">({{ evening_tasks|length }})</span>
+        </div>
+        
+        <div class="space-y-3">
+            {% for task in evening_tasks %}
+            <div class="task-card border-2 rounded-lg p-4 hover:shadow-md transition-all
+                        {% if task.id in completed_ids %}bg-green-50 border-green-300{% elif task.id in pending_ids %}bg-yellow-50 border-yellow-300{% else %}bg-white border-gray-200{% endif %}">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 flex-1">
+                        {% if task.id in completed_ids %}
+                            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">✓</div>
+                        {% elif task.id in pending_ids %}
+                            <div class="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-white">⏳</div>
+                        {% elif task.requires_approval %}
+                            <button @click="requestApproval({{ task.id }}, '{{ task.title }}')"
+                                    class="w-6 h-6 rounded border-2 border-gray-300 hover:border-blue-500"></button>
+                        {% else %}
+                            <button @click="completeTask({{ task.id }})"
+                                    class="w-6 h-6 rounded border-2 border-gray-300 hover:border-green-500"></button>
+                        {% endif %}
+                        
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl">{{ task.icon }}</span>
+                                <span class="font-medium text-gray-800">{{ task.title }}</span>
+                            </div>
+                            {% if task.description %}
+                            <p class="text-sm text-gray-500 ml-8">{{ task.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
+                            +{{ task.points }} pts
+                        </span>
+                        {% if task.requires_approval %}
+                        <span class="text-xs text-gray-500" title="Requires approval">🔔</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Anytime Tasks -->
+    {% if anytime_tasks %}
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">⭐</span>
+            <h2 class="text-2xl font-bold text-gray-800">Anytime Tasks</h2>
+            <span class="text-sm text-gray-500">({{ anytime_tasks|length }})</span>
+        </div>
+        
+        <div class="space-y-3">
+            {% for task in anytime_tasks %}
+            <div class="task-card border-2 rounded-lg p-4 hover:shadow-md transition-all
+                        {% if task.id in completed_ids %}bg-green-50 border-green-300{% elif task.id in pending_ids %}bg-yellow-50 border-yellow-300{% else %}bg-white border-gray-200{% endif %}">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 flex-1">
+                        {% if task.id in completed_ids %}
+                            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">✓</div>
+                        {% elif task.id in pending_ids %}
+                            <div class="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-white">⏳</div>
+                        {% elif task.requires_approval %}
+                            <button @click="requestApproval({{ task.id }}, '{{ task.title }}')"
+                                    class="w-6 h-6 rounded border-2 border-gray-300 hover:border-blue-500"></button>
+                        {% else %}
+                            <button @click="completeTask({{ task.id }})"
+                                    class="w-6 h-6 rounded border-2 border-gray-300 hover:border-green-500"></button>
+                        {% endif %}
+                        
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl">{{ task.icon }}</span>
+                                <span class="font-medium text-gray-800">{{ task.title }}</span>
+                            </div>
+                            {% if task.description %}
+                            <p class="text-sm text-gray-500 ml-8">{{ task.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
+                            +{{ task.points }} pts
+                        </span>
+                        {% if task.requires_approval %}
+                        <span class="text-xs text-gray-500" title="Requires approval">🔔</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+
+<script>
+function taskDashboard() {
+    return {
+        points: {{ progress.total_points }},
+        
+        async completeTask(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/complete`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.status === 'completed') {
+                        this.points = data.total_today;
+                        showToast(`✅ ${data.message}`, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else if (data.status === 'pending_approval') {
+                        showToast(`🔔 ${data.message}`, 'info');
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                } else {
+                    showToast(data.detail || 'Error completing task', 'error');
+                }
+            } catch (error) {
+                showToast('Connection error', 'error');
+            }
+        },
+        
+        async requestApproval(taskId, taskTitle) {
+            const proof = prompt(`Request approval for "${taskTitle}".\n\nAdd a note (optional):`);
+            if (proof === null) return; // Cancelled
+            
+            // For now, just complete the task (approval request is created automatically)
+            await this.completeTask(taskId);
+        }
+    }
+}
+
+function showToast(message, type = 'info') {
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg`;
+    toast.textContent = message;
+    
+    document.getElementById('toast-container').appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+
+{% endblock %}

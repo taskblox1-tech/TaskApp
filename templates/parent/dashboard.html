@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Parent Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50" x-data="parentDashboard()">
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">🏠 Family Dashboard</h1>
+                <button @click="logout()" class="text-sm text-red-600 hover:text-red-800">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        
+        <!-- Family Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-600">Total Tasks</div>
+                <div class="text-3xl font-bold text-blue-600" x-text="stats.totalTasks">0</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-600">Completed Today</div>
+                <div class="text-3xl font-bold text-green-600" x-text="stats.completedToday">0</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-600">Pending Approvals</div>
+                <div class="text-3xl font-bold text-yellow-600" x-text="stats.pendingApprovals">0</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-600">Total Points</div>
+                <div class="text-3xl font-bold text-purple-600" x-text="stats.totalPoints">0</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex -mb-px overflow-x-auto">
+                    <button @click="activeTab = 'children'" 
+                            :class="activeTab === 'children' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
+                            class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+                        👨‍👩‍👧 Children
+                    </button>
+                    <button @click="activeTab = 'approvals'" 
+                            :class="activeTab === 'approvals' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
+                            class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+                        ✅ Approvals
+                    </button>
+                    <button @click="activeTab = 'tasks'" 
+                            :class="activeTab === 'tasks' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
+                            class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+                        📋 All Tasks
+                    </button>
+                    <button @click="activeTab = 'rewards'" 
+                            :class="activeTab === 'rewards' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
+                            class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+                        🎁 Rewards
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                
+                <!-- Children Tab -->
+                <div x-show="activeTab === 'children'">
+                    <h2 class="text-xl font-bold mb-4">Your Children</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <template x-for="child in children" :key="child.id">
+                            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-lg font-bold" x-text="child.first_name + ' ' + child.last_name"></h3>
+                                    <span class="text-2xl" x-text="getThemeIcon(child.theme)"></span>
+                                </div>
+                                <div class="text-sm text-gray-600 mb-2">
+                                    Theme: <span class="font-medium capitalize" x-text="child.theme"></span>
+                                </div>
+                                <div class="text-2xl font-bold text-purple-600" x-text="child.total_lifetime_points + ' points'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Approvals Tab -->
+                <div x-show="activeTab === 'approvals'">
+                    <h2 class="text-xl font-bold mb-4">Pending Approvals</h2>
+                    <div x-show="approvals.length === 0" class="text-center py-12 text-gray-500">
+                        No pending approvals
+                    </div>
+                    <div class="space-y-3">
+                        <template x-for="approval in approvals" :key="approval.id">
+                            <div class="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <span class="text-3xl" x-text="approval.task_icon"></span>
+                                        <div>
+                                            <h3 class="font-bold text-lg" x-text="approval.task_title"></h3>
+                                            <p class="text-sm text-gray-600" x-text="'Requested by: ' + approval.child_name"></p>
+                                            <p class="text-xs text-gray-500" x-text="'Requested: ' + new Date(approval.created_at).toLocaleString()"></p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button @click="approveTask(approval.id)"
+                                                class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">
+                                            ✓ Approve
+                                        </button>
+                                        <button @click="denyTask(approval.id)"
+                                                class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700">
+                                            ✗ Deny
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- All Tasks Tab -->
+                <div x-show="activeTab === 'tasks'">
+                    <h2 class="text-xl font-bold mb-4">All Family Tasks</h2>
+                    <div class="space-y-3">
+                        <template x-for="task in tasks" :key="task.id">
+                            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl" x-text="task.icon"></span>
+                                        <div>
+                                            <h3 class="font-bold" x-text="task.title"></h3>
+                                            <p class="text-sm text-gray-600">
+                                                <span class="capitalize" x-text="task.period"></span> • 
+                                                <span class="capitalize" x-text="task.day_type"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold text-purple-600" x-text="task.points + ' pts'"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Rewards Tab -->
+                <div x-show="activeTab === 'rewards'">
+                    <h2 class="text-xl font-bold mb-4">Available Rewards</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <template x-for="reward in rewards" :key="reward.id">
+                            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200 text-center">
+                                <div class="text-4xl mb-2" x-text="reward.icon"></div>
+                                <h3 class="font-bold mb-1" x-text="reward.name"></h3>
+                                <div class="text-lg font-bold text-purple-600" x-text="reward.cost + ' points'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+function parentDashboard() {
+    return {
+        activeTab: 'children',
+        children: [],
+        tasks: [],
+        approvals: [],
+        rewards: [],
+        stats: {
+            totalTasks: 0,
+            completedToday: 0,
+            pendingApprovals: 0,
+            totalPoints: 0
+        },
+        
+        async init() {
+            await this.loadData();
+        },
+        
+        async loadData() {
+            try {
+                const childrenRes = await fetch('/api/auth/children', {
+                    credentials: 'same-origin'
+                });
+                if (childrenRes.ok) {
+                    const data = await childrenRes.json();
+                    this.children = data.children || [];
+                    this.stats.totalPoints = this.children.reduce((sum, child) => sum + child.total_lifetime_points, 0);
+                }
+
+                const tasksRes = await fetch('/api/tasks/', {
+                    credentials: 'same-origin'
+                });
+                if (tasksRes.ok) {
+                    const data = await tasksRes.json();
+                    this.tasks = data.tasks || [];
+                    this.stats.totalTasks = this.tasks.length;
+                }
+
+                const approvalsRes = await fetch('/api/approvals/', {
+                    credentials: 'same-origin'
+                });
+                if (approvalsRes.ok) {
+                    const data = await approvalsRes.json();
+                    this.approvals = data.approvals || [];
+                    this.stats.pendingApprovals = this.approvals.length;
+                }
+
+                const rewardsRes = await fetch('/api/rewards/', {
+                    credentials: 'same-origin'
+                });
+                if (rewardsRes.ok) {
+                    const data = await rewardsRes.json();
+                    this.rewards = data.rewards || [];
+                }
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        },
+        
+        getThemeIcon(theme) {
+            const icons = {
+                minecraft: '⛏️',
+                barbie: '👗',
+                pokemon: '⚡',
+                mario: '🍄',
+                princess: '👑',
+                sports: '⚽',
+                space: '🚀',
+                unicorn: '🦄',
+                dinosaur: '🦕',
+                ocean: '🌊'
+            };
+            return icons[theme] || '⭐';
+        },
+        
+        async approveTask(approvalId) {
+            if (!confirm('Approve this task?')) return;
+
+            try {
+                const res = await fetch(`/api/approvals/${approvalId}/approve`, {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+
+                if (res.ok) {
+                    alert('✅ Task approved!');
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error approving task:', error);
+                alert('Failed to approve task');
+            }
+        },
+
+        async denyTask(approvalId) {
+            if (!confirm('Deny this task?')) return;
+
+            try {
+                const res = await fetch(`/api/approvals/${approvalId}/deny`, {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+
+                if (res.ok) {
+                    alert('❌ Task denied');
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error denying task:', error);
+                alert('Failed to deny task');
+            }
+        },
+
+        async logout() {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+            window.location.href = '/login';
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,107 @@
+/* ====================================================================
+   FILE: static/css/main.css
+   Main stylesheet with responsive utilities
+   ==================================================================== */
+
+/* Navigation Links */
+.nav-link {
+    @apply px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors font-medium;
+}
+
+.mobile-nav-link {
+    @apply block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors;
+}
+
+/* Task Cards */
+.task-card {
+    transition: all 0.2s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Buttons */
+.btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors;
+}
+
+.btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors;
+}
+
+.btn-success {
+    @apply bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors;
+}
+
+.btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors;
+}
+
+/* Form Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all;
+}
+
+/* Cards */
+.card {
+    @apply bg-white rounded-xl shadow-lg p-6;
+}
+
+/* Badges */
+.badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.badge-blue {
+    @apply bg-blue-100 text-blue-800;
+}
+
+.badge-green {
+    @apply bg-green-100 text-green-800;
+}
+
+.badge-yellow {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-red {
+    @apply bg-red-100 text-red-800;
+}
+
+/* Theme Animations */
+@keyframes celebration {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.celebration {
+    animation: celebration 0.3s ease-in-out;
+}
+
+/* Responsive Utilities */
+@media (max-width: 640px) {
+    .mobile-hide {
+        display: none;
+    }
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
