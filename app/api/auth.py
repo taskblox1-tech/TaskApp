@@ -21,6 +21,9 @@ async def register(
     db: Session = Depends(get_db)
 ):
     """Register a new user"""
+    import string
+    import random
+
     # Check if email already exists
     existing_user = db.query(Profile).filter(Profile.email == user_data.email).first()
     if existing_user:
@@ -28,7 +31,7 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
-    
+
     # Verify family if joining existing family
     family_id = None
     if user_data.join_code:
@@ -41,24 +44,47 @@ async def register(
         family_id = family.id
     elif user_data.family_id:
         family_id = user_data.family_id
-    
+    elif user_data.role == "parent":
+        # Create new family for parent if no join code provided
+        # Generate unique join code
+        while True:
+            join_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            existing_family = db.query(Family).filter(Family.join_code == join_code).first()
+            if not existing_family:
+                break
+
+        # Create family
+        new_family = Family(
+            name=f"{user_data.name}'s Family",
+            join_code=join_code
+        )
+        db.add(new_family)
+        db.flush()  # Get the family ID
+        family_id = new_family.id
+
+    # Parse name into first and last name
+    name_parts = user_data.name.split(' ', 1)
+    first_name = name_parts[0]
+    last_name = name_parts[1] if len(name_parts) > 1 else ""
+
     # Create new user
     new_user = Profile(
         email=user_data.email,
         password_hash=get_password_hash(user_data.password),
-        name=user_data.name,
+        first_name=first_name,
+        last_name=last_name,
         role=user_data.role,
         family_id=family_id,
         theme="default" if user_data.role != "child" else "minecraft"
     )
-    
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
+
     # Create access token
     access_token = create_access_token(data={"sub": new_user.id})
-    
+
     # Set cookie
     response.set_cookie(
         key="access_token",

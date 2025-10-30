@@ -1,16 +1,223 @@
-<!-- ============= templates/auth/register.html ============= -->
 {% extends "base.html" %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Register - Family Task Tracker{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center px-4">
-    <div class="max-w-md w-full">
-        <h1 class="text-3xl font-bold text-center mb-6">Register</h1>
-        <p class="text-center">Registration page coming soon...</p>
-        <div class="text-center mt-4">
-            <a href="/login" class="text-blue-600 hover:underline">Back to Login</a>
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <h2 class="text-4xl font-bold text-gray-900">🏠 Create Account</h2>
+            <p class="mt-2 text-gray-600">Join or create your family</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg" x-data="registerForm()">
+            <form @submit.prevent="submitRegister" class="space-y-6">
+                <!-- Account Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">I am a...</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button
+                            type="button"
+                            @click="role = 'parent'"
+                            :class="role === 'parent' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border-gray-300'"
+                            class="px-4 py-3 border-2 rounded-lg font-medium hover:border-blue-500 transition-colors"
+                        >
+                            👨‍👩‍👧 Parent
+                        </button>
+                        <button
+                            type="button"
+                            @click="role = 'child'"
+                            :class="role === 'child' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border-gray-300'"
+                            class="px-4 py-3 border-2 rounded-lg font-medium hover:border-blue-500 transition-colors"
+                        >
+                            👦 Child
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Name Field -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        x-model="name"
+                        required
+                        placeholder="John Doe"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    >
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        x-model="email"
+                        required
+                        placeholder="you@example.com"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    >
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        x-model="password"
+                        required
+                        minlength="6"
+                        placeholder="••••••••"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    >
+                    <p class="mt-1 text-xs text-gray-500">At least 6 characters</p>
+                </div>
+
+                <!-- Family Options (Parent only) -->
+                <div x-show="role === 'parent'">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Family Setup</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50"
+                               :class="familyOption === 'create' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'">
+                            <input
+                                type="radio"
+                                name="familyOption"
+                                value="create"
+                                x-model="familyOption"
+                                class="mr-3"
+                            >
+                            <span>🏠 Create a new family</span>
+                        </label>
+                        <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50"
+                               :class="familyOption === 'join' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'">
+                            <input
+                                type="radio"
+                                name="familyOption"
+                                value="join"
+                                x-model="familyOption"
+                                class="mr-3"
+                            >
+                            <span>🔑 Join existing family</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Join Code (for joining family) -->
+                <div x-show="(role === 'parent' && familyOption === 'join') || role === 'child'">
+                    <label for="joinCode" class="block text-sm font-medium text-gray-700">Family Join Code</label>
+                    <input
+                        type="text"
+                        id="joinCode"
+                        x-model="joinCode"
+                        :required="(role === 'parent' && familyOption === 'join') || role === 'child'"
+                        placeholder="ABC123"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 uppercase"
+                    >
+                    <p class="mt-1 text-xs text-gray-500">Ask your parent for the family code</p>
+                </div>
+
+                <!-- Theme Selection (Child only) -->
+                <div x-show="role === 'child'">
+                    <label for="theme" class="block text-sm font-medium text-gray-700">Choose Your Theme</label>
+                    <select
+                        id="theme"
+                        x-model="theme"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="minecraft">⛏️ Minecraft</option>
+                        <option value="barbie">👗 Barbie</option>
+                        <option value="pokemon">⚡ Pokémon</option>
+                        <option value="mario">🍄 Mario</option>
+                        <option value="princess">👑 Princess</option>
+                        <option value="sports">⚽ Sports</option>
+                        <option value="space">🚀 Space</option>
+                        <option value="unicorn">🦄 Unicorn</option>
+                        <option value="dinosaur">🦕 Dinosaur</option>
+                        <option value="ocean">🌊 Ocean</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    type="submit"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                >
+                    Create Account
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Already have an account?
+                    <a href="/auth/login" class="font-medium text-blue-600 hover:text-blue-500">
+                        Sign In
+                    </a>
+                </p>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+function registerForm() {
+    return {
+        role: 'parent',
+        familyOption: 'create',
+        name: '',
+        email: '',
+        password: '',
+        joinCode: '',
+        theme: 'minecraft',
+
+        async submitRegister() {
+            try {
+                // Prepare registration data
+                const data = {
+                    email: this.email,
+                    password: this.password,
+                    name: this.name,
+                    role: this.role
+                };
+
+                // Add join code if joining existing family
+                if (this.role === 'child' || (this.role === 'parent' && this.familyOption === 'join')) {
+                    if (!this.joinCode) {
+                        alert('Please enter a family join code');
+                        return;
+                    }
+                    data.join_code = this.joinCode.toUpperCase();
+                }
+
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Registration successful
+                    alert('Account created successfully!');
+
+                    // Redirect based on role
+                    if (result.user.role === 'child') {
+                        window.location.href = '/child/dashboard';
+                    } else {
+                        window.location.href = '/parent/dashboard';
+                    }
+                } else {
+                    alert(result.detail || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Network error. Please try again.');
+            }
+        }
+    }
+}
+</script>
 {% endblock %}
