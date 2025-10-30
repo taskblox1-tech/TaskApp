@@ -139,66 +139,155 @@
             </div>
         </div>
 
-        <!-- Task Filters -->
-        <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
-            <button @click="filterTasks('all')" 
-                    :class="filter === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
-                All Tasks
-            </button>
-            <button @click="filterTasks('morning')" 
-                    :class="filter === 'morning' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
-                🌅 Morning
-            </button>
-            <button @click="filterTasks('evening')" 
-                    :class="filter === 'evening' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
-                🌙 Evening
-            </button>
-            <button @click="filterTasks('anytime')" 
-                    :class="filter === 'anytime' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
-                ⭐ Anytime
-            </button>
+        <!-- Period Filters -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <h3 class="font-bold text-gray-700 mb-2">Filter by Time of Day:</h3>
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button @click="filterTasks('all')"
+                        :class="filter === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                    All Tasks
+                </button>
+                <button @click="filterTasks('morning')"
+                        :class="filter === 'morning' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                    🌅 Morning
+                </button>
+                <button @click="filterTasks('evening')"
+                        :class="filter === 'evening' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                    🌙 Evening
+                </button>
+                <button @click="filterTasks('anytime')"
+                        :class="filter === 'anytime' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap">
+                    ⭐ Anytime
+                </button>
+            </div>
         </div>
 
-        <!-- Tasks List -->
-        <div class="space-y-3">
-            <template x-for="task in filteredTasks" :key="task.id">
-                <div class="bg-white rounded-lg shadow-lg p-4 border-l-4"
-                     :class="task.completed ? 'border-green-500 bg-green-50' : 'border-blue-500'">
-                    <div class="flex items-center gap-4">
-                        <!-- Checkbox/Icon -->
-                        <button @click="toggleTask(task, $event)"
-                                :id="'task-button-' + task.id"
-                                class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all"
-                                :class="task.completed ? 'bg-green-500 text-white' : 'bg-gray-200 hover:scale-110'">
-                            <span x-text="task.completed ? '✓' : task.icon"></span>
-                        </button>
-                        
-                        <!-- Task Info -->
-                        <div class="flex-1">
-                            <h3 class="font-bold text-lg" 
-                                :class="task.completed ? 'line-through text-gray-500' : ''"
-                                x-text="task.title"></h3>
-                            <div class="flex gap-2 text-sm text-gray-600">
-                                <span class="capitalize" x-text="task.period"></span>
-                                <span>•</span>
-                                <span class="font-bold text-purple-600" x-text="task.points + ' pts'"></span>
-                            </div>
+        <!-- Category Filters -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <h3 class="font-bold text-gray-700 mb-2">Filter by Category:</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button @click="filterByCategory('all')"
+                        :class="categoryFilter === 'all' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    All
+                </button>
+                <button @click="filterByCategory('Morning Tasks')"
+                        :class="categoryFilter === 'Morning Tasks' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    🌅 Morning Tasks
+                </button>
+                <button @click="filterByCategory('Evening Tasks')"
+                        :class="categoryFilter === 'Evening Tasks' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    🌙 Evening Tasks
+                </button>
+                <button @click="filterByCategory('Academic Excellence')"
+                        :class="categoryFilter === 'Academic Excellence' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    📚 Academic
+                </button>
+                <button @click="filterByCategory('Health & Fitness')"
+                        :class="categoryFilter === 'Health & Fitness' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    🏃 Health
+                </button>
+                <button @click="filterByCategory('Character & Behavior')"
+                        :class="categoryFilter === 'Character & Behavior' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    💖 Character
+                </button>
+                <button @click="filterByCategory('Extra Household Tasks')"
+                        :class="categoryFilter === 'Extra Household Tasks' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    🏠 Household
+                </button>
+                <button @click="filterByCategory('Creative & Development')"
+                        :class="categoryFilter === 'Creative & Development' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    🎨 Creative
+                </button>
+                <button @click="filterByCategory('Bonus Challenges')"
+                        :class="categoryFilter === 'Bonus Challenges' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
+                        class="px-3 py-2 rounded-lg font-medium text-sm">
+                    🎯 Bonus
+                </button>
+            </div>
+        </div>
+
+        <!-- Tasks List with Multi-Column Layout and Collapsible Sections -->
+        <div class="space-y-4">
+            <!-- Show/Hide All Button -->
+            <div class="flex justify-end">
+                <button @click="toggleAllTaskSections()"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium text-sm">
+                    <span x-text="allTaskSectionsExpanded ? '▼ Hide All' : '▶ Show All'"></span>
+                </button>
+            </div>
+
+            <!-- Group tasks by period -->
+            <template x-for="period in ['morning', 'evening', 'anytime']" :key="period">
+                <div x-show="getTasksForPeriod(period).length > 0" class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <!-- Section Header (Clickable to Collapse/Expand) -->
+                    <button @click="toggleTaskSection(period)"
+                            class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-all"
+                            :class="taskSectionsExpanded[period] ? 'bg-gray-50' : ''">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl" x-text="getPeriodIcon(period)"></span>
+                            <h3 class="font-bold text-lg capitalize" x-text="period + ' Tasks'"></h3>
+                            <span class="text-sm text-gray-500"
+                                  x-text="'(' + getTasksForPeriod(period).length + ')'"></span>
                         </div>
-                        
-                        <!-- Approval Badge -->
-                        <div x-show="task.requires_approval && task.completed" 
-                             class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
-                            Pending Approval
+                        <span class="text-2xl transition-transform"
+                              :class="taskSectionsExpanded[period] ? 'rotate-90' : ''"
+                              x-text="'▶'"></span>
+                    </button>
+
+                    <!-- Tasks Grid (Collapsible) -->
+                    <div x-show="taskSectionsExpanded[period]"
+                         x-transition
+                         class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <template x-for="task in getTasksForPeriod(period)" :key="task.id">
+                                <div class="bg-white rounded-lg shadow border-l-4 p-3"
+                                     :class="task.completed ? 'border-green-500 bg-green-50' : 'border-blue-500'">
+                                    <div class="flex items-start gap-3">
+                                        <!-- Checkbox/Icon -->
+                                        <button @click="toggleTask(task, $event)"
+                                                :id="'task-button-' + task.id"
+                                                class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all"
+                                                :class="task.completed ? 'bg-green-500 text-white' : 'bg-gray-200 hover:scale-110'">
+                                            <span x-text="task.completed ? '✓' : task.icon"></span>
+                                        </button>
+
+                                        <!-- Task Info -->
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="font-bold text-sm leading-tight mb-1"
+                                                :class="task.completed ? 'line-through text-gray-500' : ''"
+                                                x-text="task.title"></h3>
+                                            <div class="flex flex-wrap gap-1 text-xs text-gray-600">
+                                                <span class="font-bold text-purple-600" x-text="task.points + ' pts'"></span>
+                                                <span x-show="task.category" class="text-gray-400">•</span>
+                                                <span x-show="task.category" class="truncate" x-text="task.category"></span>
+                                            </div>
+                                            <!-- Approval Badge -->
+                                            <div x-show="task.requires_approval && task.completed"
+                                                 class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium mt-1 inline-block">
+                                                Pending
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
             </template>
-            
-            <div x-show="filteredTasks.length === 0" class="text-center py-12 text-gray-500">
+
+            <div x-show="filteredTasks.length === 0" class="text-center py-12 text-gray-500 bg-white rounded-lg shadow-lg">
                 No tasks for this filter
             </div>
         </div>
@@ -446,6 +535,7 @@ function childDashboard() {
         rewards: [],
         redeemedRewards: [],
         filter: 'all',
+        categoryFilter: 'all',
         selectedPeriod: 'today',
         showThemeSelector: false,
         showRedeemModal: false,
@@ -455,6 +545,12 @@ function childDashboard() {
         selectedAvatar: '',
         unlockedCharacters: [],  // Array of unlocked character keys
         showChampionText: false,  // For animation: show "⭐ Champion" text
+        taskSectionsExpanded: {  // Track which task sections are expanded
+            morning: true,
+            evening: true,
+            anytime: true
+        },
+        allTaskSectionsExpanded: true,  // Track if all sections are expanded
         progressStats: {
             total_completed: 0,
             total_points: 0,
@@ -467,8 +563,19 @@ function childDashboard() {
         },
 
         get filteredTasks() {
-            if (this.filter === 'all') return this.tasks;
-            return this.tasks.filter(t => t.period === this.filter);
+            let filtered = this.tasks;
+
+            // Filter by period (morning/evening/anytime)
+            if (this.filter !== 'all') {
+                filtered = filtered.filter(t => t.period === this.filter);
+            }
+
+            // Filter by category
+            if (this.categoryFilter !== 'all') {
+                filtered = filtered.filter(t => t.category === this.categoryFilter);
+            }
+
+            return filtered;
         },
 
         async init() {
@@ -930,7 +1037,41 @@ function childDashboard() {
         filterTasks(type) {
             this.filter = type;
         },
-        
+
+        filterByCategory(category) {
+            this.categoryFilter = category;
+        },
+
+        getTasksForPeriod(period) {
+            // Get tasks for a specific period (morning/evening/anytime)
+            return this.filteredTasks.filter(t => t.period === period);
+        },
+
+        toggleTaskSection(period) {
+            // Toggle a specific task section
+            this.taskSectionsExpanded[period] = !this.taskSectionsExpanded[period];
+            // Update the "all expanded" state
+            this.allTaskSectionsExpanded = Object.values(this.taskSectionsExpanded).every(v => v);
+        },
+
+        toggleAllTaskSections() {
+            // Toggle all task sections at once
+            this.allTaskSectionsExpanded = !this.allTaskSectionsExpanded;
+            this.taskSectionsExpanded.morning = this.allTaskSectionsExpanded;
+            this.taskSectionsExpanded.evening = this.allTaskSectionsExpanded;
+            this.taskSectionsExpanded.anytime = this.allTaskSectionsExpanded;
+        },
+
+        getPeriodIcon(period) {
+            // Get icon for time period
+            const icons = {
+                morning: '🌅',
+                evening: '🌙',
+                anytime: '⭐'
+            };
+            return icons[period] || '📋';
+        },
+
         getThemeIcon(theme) {
             const icons = {
                 minecraft: '⛏️',
