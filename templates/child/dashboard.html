@@ -40,9 +40,16 @@
                 <!-- Big Character Avatar -->
                 <div class="character-avatar flex-shrink-0">
                     <div class="avatar-circle" :style="'background: rgba(255, 255, 255, 0.2); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 0 5px rgba(255, 255, 255, 0.3);'">
-                        <span class="avatar-emoji" x-text="getAvatarEmoji()"></span>
+                        <!-- Show character image if available, otherwise show emoji -->
+                        <img x-show="getAvatarImageUrl()"
+                             :src="getAvatarImageUrl()"
+                             :alt="currentAvatar"
+                             class="avatar-image"
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        <span x-show="!getAvatarImageUrl()" class="avatar-emoji" x-text="getAvatarEmoji()"></span>
                     </div>
-                    <div class="avatar-label text-center mt-2 font-bold text-lg" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);" x-text="currentAvatar || 'Champion'"></div>
+                    <div class="avatar-label text-center mt-2 font-bold text-lg" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);"
+                         x-text="showChampionText ? '⭐ Champion' : (currentAvatar || 'Champion')"></div>
                 </div>
 
                 <!-- Points Display -->
@@ -364,22 +371,42 @@
                         <div class="avatar-grid">
                             <template x-for="avatar in (selectedTheme && allThemes[selectedTheme] ? allThemes[selectedTheme].avatars : [])"
                                       :key="avatar.name">
-                                <div @click="selectedAvatar = avatar.name"
-                                     class="avatar-option"
-                                     :class="selectedAvatar === avatar.name ? 'selected' : ''"
+                                <div @click="handleAvatarClick(avatar)"
+                                     class="avatar-option relative"
+                                     :class="[
+                                         selectedAvatar === avatar.name ? 'selected' : '',
+                                         isCharacterLocked(avatar) ? 'locked opacity-60' : 'cursor-pointer'
+                                     ]"
                                      :style="'border-color: ' + (selectedAvatar === avatar.name ? avatar.color : '#e5e7eb')">
-                                    <!-- Avatar Emoji Display -->
-                                    <div class="avatar-emoji"
-                                         x-text="avatar.emoji"
-                                         :style="'color: ' + avatar.color">
+                                    <!-- Avatar Image or Emoji -->
+                                    <div class="avatar-display relative">
+                                        <img x-show="avatar.imageUrl"
+                                             :src="avatar.imageUrl"
+                                             :alt="avatar.name"
+                                             class="avatar-img"
+                                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin: 0 auto;">
+                                        <div x-show="!avatar.imageUrl"
+                                             class="avatar-emoji"
+                                             x-text="avatar.emoji"
+                                             :style="'color: ' + avatar.color">
+                                        </div>
+
+                                        <!-- Lock Overlay -->
+                                        <div x-show="isCharacterLocked(avatar)"
+                                             class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+                                            <span class="text-4xl">🔒</span>
+                                        </div>
                                     </div>
 
                                     <!-- Avatar Name -->
                                     <div class="avatar-name" x-text="avatar.name"></div>
 
-                                    <!-- Extra Icon (for themes like Ninja Turtles with weapons) -->
-                                    <div class="avatar-extra"
-                                         x-show="avatar.weapon || avatar.hat"
+                                    <!-- Unlock Requirement or Extra Icon -->
+                                    <div x-show="isCharacterLocked(avatar)"
+                                         class="avatar-unlock-req text-xs text-gray-600 mt-1"
+                                         x-text="avatar.description"></div>
+                                    <div x-show="!isCharacterLocked(avatar) && (avatar.weapon || avatar.hat)"
+                                         class="avatar-extra"
                                          x-text="avatar.weapon || avatar.hat">
                                     </div>
                                 </div>
@@ -426,6 +453,8 @@ function childDashboard() {
         allThemes: typeof THEMES !== 'undefined' ? THEMES : {},
         selectedTheme: '',
         selectedAvatar: '',
+        unlockedCharacters: [],  // Array of unlocked character keys
+        showChampionText: false,  // For animation: show "⭐ Champion" text
         progressStats: {
             total_completed: 0,
             total_points: 0,
@@ -444,10 +473,102 @@ function childDashboard() {
 
         async init() {
             await this.loadProfile();
+            await this.loadUnlockedCharacters();
+            await this.checkUnlocks();
             await this.loadProgressStats();
             await this.loadTasks();
             await this.loadRewards();
             await this.loadRedeemedRewards();
+        },
+
+        async loadUnlockedCharacters() {
+            try {
+                const res = await fetch('/api/characters/available', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.unlockedCharacters = data.unlocked_character_keys || [];
+                }
+            } catch (error) {
+                console.error('Error loading unlocked characters:', error);
+            }
+        },
+
+        async checkUnlocks() {
+            // Check if user has unlocked any new characters
+            if (!this.currentTheme || !this.currentTheme.avatars) return;
+
+            try {
+                const characters = this.currentTheme.avatars.map(avatar => ({
+                    name: avatar.name,
+                    character_key: `${this.theme}_${avatar.name.toLowerCase().replace(/ /g, '_')}`,
+                    unlockRequirement: avatar.unlockRequirement
+                }));
+
+                const res = await fetch('/api/characters/check-unlocks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        theme: this.theme,
+                        characters: characters
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    this.unlockedCharacters = data.all_unlocked || [];
+
+                    // Show celebration for newly unlocked characters
+                    if (data.newly_unlocked && data.newly_unlocked.length > 0) {
+                        if (typeof showToast === 'function') {
+                            showToast(`🎉 New character unlocked!`, 'success');
+                        }
+                        if (typeof confettiBurst === 'function') {
+                            confettiBurst(window.innerWidth / 2, window.innerHeight / 2);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking unlocks:', error);
+            }
+        },
+
+        getAvatarImageUrl() {
+            // Get the image URL for the current avatar
+            if (!this.currentTheme || !this.currentAvatar) {
+                return null;
+            }
+
+            const avatarObj = this.currentTheme.avatars?.find(a => a.name === this.currentAvatar);
+            return avatarObj?.imageUrl || null;
+        },
+
+        isCharacterLocked(avatar) {
+            // Check if a character is locked based on unlock requirement
+            if (!avatar.unlockRequirement) {
+                return false; // No requirement = always unlocked
+            }
+
+            const characterKey = `${this.selectedTheme}_${avatar.name.toLowerCase().replace(/ /g, '_')}`;
+            return !this.unlockedCharacters.includes(characterKey);
+        },
+
+        handleAvatarClick(avatar) {
+            // Only allow selection of unlocked characters
+            if (!this.isCharacterLocked(avatar)) {
+                this.selectedAvatar = avatar.name;
+            } else {
+                // Show unlock requirement message
+                if (typeof showToast === 'function') {
+                    showToast(`🔒 ${avatar.description}`, 'info');
+                } else {
+                    alert(`🔒 ${avatar.description}`);
+                }
+            }
         },
 
         async changePeriod(period) {
@@ -533,6 +654,13 @@ function childDashboard() {
                     // Close modal
                     this.showThemeSelector = false;
 
+                    // CHARACTER SELECTION ANIMATION:
+                    // Show character name for 1 second, then show "⭐ Champion"
+                    this.showChampionText = false;
+                    setTimeout(() => {
+                        this.showChampionText = true;
+                    }, 1000);
+
                     // Show success message
                     if (typeof showToast === 'function') {
                         showToast(`Theme changed to ${THEMES[this.theme].name} - ${this.currentAvatar}!`, 'success');
@@ -540,8 +668,13 @@ function childDashboard() {
                         alert(`Theme changed to ${THEMES[this.theme].name} - ${this.currentAvatar}!`);
                     }
 
-                    // Reload page to apply theme everywhere
-                    setTimeout(() => window.location.reload(), 1000);
+                    // Confetti celebration!
+                    if (typeof confettiBurst === 'function') {
+                        confettiBurst(window.innerWidth / 2, window.innerHeight / 2);
+                    }
+
+                    // Reload page to apply theme everywhere after animation
+                    setTimeout(() => window.location.reload(), 2000);
                 } else {
                     const error = await res.json();
                     if (typeof showToast === 'function') {
