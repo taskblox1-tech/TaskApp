@@ -184,19 +184,32 @@
                     <div x-show="tasks.length > 0" class="space-y-3">
                         <template x-for="task in tasks" :key="task.id">
                             <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center gap-3">
+                                <div class="flex justify-between items-start gap-4">
+                                    <div class="flex items-center gap-3 flex-1">
                                         <span class="text-2xl" x-text="task.icon"></span>
-                                        <div>
+                                        <div class="flex-1">
                                             <h3 class="font-bold" x-text="task.title"></h3>
                                             <p class="text-sm text-gray-600">
                                                 <span class="capitalize" x-text="task.period"></span> •
-                                                <span class="capitalize" x-text="task.day_type"></span>
+                                                <span class="capitalize" x-text="task.day_type"></span> •
+                                                <span class="font-bold text-purple-600" x-text="task.points + ' pts'"></span>
+                                                <span x-show="task.requires_approval" class="ml-2 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">Needs Approval</span>
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="text-right">
-                                        <div class="text-lg font-bold text-purple-600" x-text="task.points + ' pts'"></div>
+                                    <div class="flex gap-2 flex-shrink-0">
+                                        <button @click="openAssignModal(task)"
+                                                class="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+                                            Assign
+                                        </button>
+                                        <button @click="openEditTaskModal(task)"
+                                                class="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm">
+                                            Edit
+                                        </button>
+                                        <button @click="deleteTask(task.id)"
+                                                class="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm">
+                                            Delete
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -232,7 +245,17 @@
                     <!-- Rewards Grid -->
                     <div x-show="rewards.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <template x-for="reward in rewards" :key="reward.id">
-                            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200 text-center">
+                            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200 text-center relative">
+                                <div class="absolute top-2 right-2 flex gap-1">
+                                    <button @click="openEditRewardModal(reward)"
+                                            class="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-xs">
+                                        Edit
+                                    </button>
+                                    <button @click="deleteReward(reward.id)"
+                                            class="px-2 py-1 bg-red-200 text-red-700 rounded hover:bg-red-300 text-xs">
+                                        Delete
+                                    </button>
+                                </div>
                                 <div class="text-4xl mb-2" x-text="reward.icon"></div>
                                 <h3 class="font-bold mb-1" x-text="reward.name"></h3>
                                 <div class="text-lg font-bold text-purple-600" x-text="reward.cost + ' points'"></div>
@@ -473,15 +496,131 @@
         </div>
     </div>
 
-    <!-- Reward Creation Modal -->
-    <div x-show="showRewardModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="showRewardModal = false">
+    <!-- Reward Creation/Edit Modal -->
+    <div x-show="showRewardModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="closeRewardModal()">
         <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Create New Reward</h2>
-                <button @click="showRewardModal = false" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                <h2 class="text-2xl font-bold" x-text="editingReward ? 'Edit Reward' : 'Create New Reward'"></h2>
+                <button @click="closeRewardModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
-            <p class="text-gray-600 mb-4">This feature will be available soon! For now, you can use the seed data script to add sample rewards.</p>
-            <button @click="showRewardModal = false" class="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700">Close</button>
+
+            <form @submit.prevent="editingReward ? updateReward() : createReward()" class="space-y-4">
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reward Name *</label>
+                    <input
+                        type="text"
+                        x-model="newReward.name"
+                        required
+                        placeholder="e.g., Extra Screen Time"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                    >
+                </div>
+
+                <!-- Icon and Cost -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                        <input
+                            type="text"
+                            x-model="newReward.icon"
+                            placeholder="🎁"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-2xl text-center"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cost (Points) *</label>
+                        <input
+                            type="number"
+                            x-model.number="newReward.cost"
+                            min="1"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                        >
+                    </div>
+                </div>
+
+                <!-- Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select
+                        x-model="newReward.type"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                    >
+                        <option value="prize">🎁 Prize</option>
+                        <option value="privilege">⭐ Privilege</option>
+                        <option value="activity">🎮 Activity</option>
+                        <option value="treat">🍦 Treat</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 pt-4">
+                    <button
+                        type="button"
+                        @click="closeRewardModal()"
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                        x-text="editingReward ? 'Update Reward' : 'Create Reward'"
+                    >
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Task Modal -->
+    <div x-show="showAssignModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="showAssignModal = false">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Assign Task</h2>
+                <button @click="showAssignModal = false" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-gray-600 mb-2">Assigning: <span class="font-bold" x-text="assigningTask?.title"></span></p>
+            </div>
+
+            <form @submit.prevent="assignTask()" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Children:</label>
+                    <div class="space-y-2">
+                        <template x-for="child in children" :key="child.id">
+                            <label class="flex items-center p-2 hover:bg-gray-50 rounded">
+                                <input
+                                    type="checkbox"
+                                    :value="child.id"
+                                    x-model="assignedChildren"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                >
+                                <span class="ml-2 text-sm" x-text="child.first_name + ' ' + child.last_name"></span>
+                            </label>
+                        </template>
+                        <p x-show="children.length === 0" class="text-sm text-gray-500">No children added yet.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button
+                        type="button"
+                        @click="showAssignModal = false"
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        Assign Task
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -497,6 +636,11 @@ function parentDashboard() {
         familyJoinCode: '',
         showTaskModal: false,
         showRewardModal: false,
+        showAssignModal: false,
+        editingTask: null,
+        editingReward: null,
+        assigningTask: null,
+        assignedChildren: [],
         taskStep: 1,
         taskCategories: [],
         selectedTaskCategory: '',
@@ -511,6 +655,12 @@ function parentDashboard() {
             requires_approval: false,
             library_category: '',
             assigned_to: []
+        },
+        newReward: {
+            name: '',
+            icon: '🎁',
+            cost: 100,
+            type: 'prize'
         },
         stats: {
             totalTasks: 0,
@@ -713,6 +863,247 @@ function parentDashboard() {
                 credentials: 'same-origin'
             });
             window.location.href = '/login';
+        },
+
+        // Task Edit/Delete Functions
+        async openEditTaskModal(task) {
+            this.editingTask = task;
+            this.newTask = {
+                title: task.title,
+                description: task.description || '',
+                icon: task.icon,
+                points: task.points,
+                period: task.period,
+                day_type: task.day_type,
+                requires_approval: task.requires_approval,
+                library_category: task.library_category || '',
+                assigned_to: []
+            };
+
+            // Load current assignments
+            try {
+                const res = await fetch(`/api/tasks/${task.id}/assignments`, {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.newTask.assigned_to = data.assigned_child_ids || [];
+                }
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+            }
+
+            this.taskStep = 3;
+            this.showTaskModal = true;
+        },
+
+        async createTask() {
+            try {
+                const url = this.editingTask ? `/api/tasks/${this.editingTask.id}` : '/api/tasks/';
+                const method = this.editingTask ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(this.newTask)
+                });
+
+                if (res.ok) {
+                    alert(this.editingTask ? '✅ Task updated successfully!' : '✅ Task created successfully!');
+                    this.closeTaskModal();
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error saving task:', error);
+                alert('Failed to save task');
+            }
+        },
+
+        async deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+
+            try {
+                const res = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+
+                if (res.ok) {
+                    alert('✅ Task deleted!');
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                alert('Failed to delete task');
+            }
+        },
+
+        closeTaskModal() {
+            this.showTaskModal = false;
+            this.editingTask = null;
+            this.taskStep = 1;
+            this.selectedTaskCategory = '';
+            this.availableTaskTemplates = [];
+            this.newTask = {
+                title: '',
+                description: '',
+                icon: '✅',
+                points: 10,
+                period: 'anytime',
+                day_type: 'anyday',
+                requires_approval: false,
+                library_category: '',
+                assigned_to: []
+            };
+        },
+
+        // Task Assignment Functions
+        async openAssignModal(task) {
+            this.assigningTask = task;
+            this.showAssignModal = true;
+
+            // Load current assignments
+            try {
+                const res = await fetch(`/api/tasks/${task.id}/assignments`, {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.assignedChildren = data.assigned_child_ids || [];
+                }
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+                this.assignedChildren = [];
+            }
+        },
+
+        async assignTask() {
+            if (!this.assigningTask) return;
+
+            try {
+                const res = await fetch(`/api/tasks/${this.assigningTask.id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        assigned_to: this.assignedChildren
+                    })
+                });
+
+                if (res.ok) {
+                    alert('✅ Task assignments updated!');
+                    this.showAssignModal = false;
+                    this.assigningTask = null;
+                    this.assignedChildren = [];
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error assigning task:', error);
+                alert('Failed to assign task');
+            }
+        },
+
+        // Reward Functions
+        async openEditRewardModal(reward) {
+            this.editingReward = reward;
+            this.newReward = {
+                name: reward.name,
+                icon: reward.icon,
+                cost: reward.cost,
+                type: reward.type
+            };
+            this.showRewardModal = true;
+        },
+
+        async createReward() {
+            try {
+                const res = await fetch('/api/rewards/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(this.newReward)
+                });
+
+                if (res.ok) {
+                    alert('✅ Reward created successfully!');
+                    this.closeRewardModal();
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error creating reward:', error);
+                alert('Failed to create reward');
+            }
+        },
+
+        async updateReward() {
+            if (!this.editingReward) return;
+
+            try {
+                const res = await fetch(`/api/rewards/${this.editingReward.id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(this.newReward)
+                });
+
+                if (res.ok) {
+                    alert('✅ Reward updated successfully!');
+                    this.closeRewardModal();
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error updating reward:', error);
+                alert('Failed to update reward');
+            }
+        },
+
+        async deleteReward(rewardId) {
+            if (!confirm('Are you sure you want to delete this reward?')) return;
+
+            try {
+                const res = await fetch(`/api/rewards/${rewardId}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+
+                if (res.ok) {
+                    alert('✅ Reward deleted!');
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error deleting reward:', error);
+                alert('Failed to delete reward');
+            }
+        },
+
+        closeRewardModal() {
+            this.showRewardModal = false;
+            this.editingReward = null;
+            this.newReward = {
+                name: '',
+                icon: '🎁',
+                cost: 100,
+                type: 'prize'
+            };
         }
     }
 }

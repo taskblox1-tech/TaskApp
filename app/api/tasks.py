@@ -193,3 +193,110 @@ async def complete_task(
         db.commit()
 
         return {"message": "Task completed!", "points_earned": task.points}
+
+
+@router.put("/{task_id}")
+async def update_task(
+    task_id: int,
+    task_data: dict,
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update a task (parent only)"""
+    if current_user.role != "parent":
+        raise HTTPException(status_code=403, detail="Only parents can update tasks")
+
+    # Verify task exists and belongs to family
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.family_id == current_user.family_id
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # Update task fields
+    from app.models.task import TaskPeriod, TaskDayType
+
+    if "title" in task_data:
+        task.title = task_data["title"]
+    if "description" in task_data:
+        task.description = task_data["description"]
+    if "icon" in task_data:
+        task.icon = task_data["icon"]
+    if "points" in task_data:
+        task.points = task_data["points"]
+    if "period" in task_data:
+        task.period = TaskPeriod(task_data["period"])
+    if "day_type" in task_data:
+        task.day_type = TaskDayType(task_data["day_type"])
+    if "requires_approval" in task_data:
+        task.requires_approval = 1 if task_data["requires_approval"] else 0
+
+    # Update assignments if provided
+    if "assigned_to" in task_data:
+        # Delete existing assignments
+        db.query(TaskAssignment).filter(TaskAssignment.task_id == task_id).delete()
+
+        # Add new assignments
+        for child_id in task_data["assigned_to"]:
+            assignment = TaskAssignment(
+                task_id=task_id,
+                child_id=child_id
+            )
+            db.add(assignment)
+
+    db.commit()
+    return {"message": "Task updated successfully!"}
+
+
+@router.delete("/{task_id}")
+async def delete_task(
+    task_id: int,
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a task (parent only)"""
+    if current_user.role != "parent":
+        raise HTTPException(status_code=403, detail="Only parents can delete tasks")
+
+    # Verify task exists and belongs to family
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.family_id == current_user.family_id
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # Delete task assignments first (foreign key constraint)
+    db.query(TaskAssignment).filter(TaskAssignment.task_id == task_id).delete()
+
+    # Delete the task
+    db.delete(task)
+    db.commit()
+
+    return {"message": "Task deleted successfully!"}
+
+
+@router.get("/{task_id}/assignments")
+async def get_task_assignments(
+    task_id: int,
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get children assigned to a task"""
+    # Verify task exists and belongs to family
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.family_id == current_user.family_id
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    assignments = db.query(TaskAssignment).filter(
+        TaskAssignment.task_id == task_id
+    ).all()
+
+    return {"assigned_child_ids": [a.child_id for a in assignments]}
