@@ -511,79 +511,106 @@ function childDashboard() {
         },
         
         async toggleTask(task, event) {
-            if (task.completed) {
-                // Don't allow un-completing tasks
-                return;
-            }
-
             const button = event.currentTarget;
 
             try {
-                const res = await fetch(`/api/tasks/${task.id}/complete`, {
-                    method: 'POST',
-                    credentials: 'same-origin'
-                });
+                // Check if task is already completed - if so, uncomplete it
+                if (task.completed) {
+                    const res = await fetch(`/api/tasks/${task.id}/uncomplete`, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    task.completed = true;
+                    if (res.ok) {
+                        const data = await res.json();
+                        task.completed = false;
 
-                    if (!data.requires_approval) {
-                        // Trigger animations!
-                        const pointsCounter = document.getElementById('points-counter');
-
-                        // Flying points animation
-                        if (typeof animatePoints === 'function') {
-                            animatePoints(data.points_earned, button, pointsCounter);
-                        }
-
-                        // Confetti burst
-                        if (typeof confettiBurst === 'function') {
-                            const rect = button.getBoundingClientRect();
-                            confettiBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
-                        }
-
-                        // Celebrate with theme effects
-                        if (typeof celebrate === 'function') {
-                            celebrate(button, data.points_earned, this.theme);
-                        }
-
-                        // Screen shake for high-value tasks
-                        if (data.points_earned >= 100 && typeof screenShake === 'function') {
-                            screenShake();
-                        }
-
-                        // Update points with animation
-                        this.totalPoints += data.points_earned;
+                        // Deduct points
+                        this.totalPoints -= data.points_deducted;
 
                         // Toast notification
                         if (typeof showToast === 'function') {
-                            showToast(`+${data.points_earned} points! ${data.message}`, 'success');
+                            showToast(`-${data.points_deducted} points. ${data.message}`, 'warning');
                         }
+
+                        // Reload progress stats to update display
+                        await this.loadProgressStats();
                     } else {
+                        const error = await res.json();
                         if (typeof showToast === 'function') {
-                            showToast(data.message, 'info');
+                            showToast('Error: ' + error.detail, 'error');
                         } else {
-                            alert('✅ ' + data.message);
+                            alert('Error: ' + error.detail);
                         }
                     }
-
-                    // Reload progress stats to update display
-                    await this.loadProgressStats();
                 } else {
-                    const error = await res.json();
-                    if (typeof showToast === 'function') {
-                        showToast('Error: ' + error.detail, 'error');
+                    // Complete the task
+                    const res = await fetch(`/api/tasks/${task.id}/complete`, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        task.completed = true;
+
+                        if (!data.requires_approval) {
+                            // Trigger animations!
+                            const pointsCounter = document.getElementById('points-counter');
+
+                            // Flying points animation
+                            if (typeof animatePoints === 'function') {
+                                animatePoints(data.points_earned, button, pointsCounter);
+                            }
+
+                            // Confetti burst
+                            if (typeof confettiBurst === 'function') {
+                                const rect = button.getBoundingClientRect();
+                                confettiBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                            }
+
+                            // Celebrate with theme effects
+                            if (typeof celebrate === 'function') {
+                                celebrate(button, data.points_earned, this.theme);
+                            }
+
+                            // Screen shake for high-value tasks
+                            if (data.points_earned >= 100 && typeof screenShake === 'function') {
+                                screenShake();
+                            }
+
+                            // Update points with animation
+                            this.totalPoints += data.points_earned;
+
+                            // Toast notification
+                            if (typeof showToast === 'function') {
+                                showToast(`+${data.points_earned} points! ${data.message}`, 'success');
+                            }
+                        } else {
+                            if (typeof showToast === 'function') {
+                                showToast(data.message, 'info');
+                            } else {
+                                alert('✅ ' + data.message);
+                            }
+                        }
+
+                        // Reload progress stats to update display
+                        await this.loadProgressStats();
                     } else {
-                        alert('Error: ' + error.detail);
+                        const error = await res.json();
+                        if (typeof showToast === 'function') {
+                            showToast('Error: ' + error.detail, 'error');
+                        } else {
+                            alert('Error: ' + error.detail);
+                        }
                     }
                 }
             } catch (error) {
-                console.error('Error completing task:', error);
+                console.error('Error toggling task:', error);
                 if (typeof showToast === 'function') {
-                    showToast('Failed to complete task', 'error');
+                    showToast('Failed to toggle task', 'error');
                 } else {
-                    alert('Failed to complete task');
+                    alert('Failed to toggle task');
                 }
             }
         },

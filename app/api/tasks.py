@@ -254,6 +254,66 @@ async def complete_task(
         }
 
 
+@router.post("/{task_id}/uncomplete")
+async def uncomplete_task(
+    task_id: int,
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a task as incomplete (remove completion)"""
+    from sqlalchemy.orm.attributes import flag_modified
+
+    # Verify task exists and belongs to family
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.family_id == current_user.family_id
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # Get today's progress record
+    today = date.today()
+    progress = db.query(DailyProgress).filter(
+        DailyProgress.child_id == current_user.id,
+        DailyProgress.date == today
+    ).first()
+
+    if not progress:
+        raise HTTPException(status_code=400, detail="No progress record found for today")
+
+    # Check if task is actually completed
+    if task_id not in (progress.completed_task_ids or []):
+        raise HTTPException(status_code=400, detail="Task is not completed")
+
+    # Remove from completed tasks and deduct points
+    progress.completed_task_ids.remove(task_id)
+    progress.total_points -= task.points
+    flag_modified(progress, 'completed_task_ids')
+
+    # Update user's total points
+    current_user.total_lifetime_points -= task.points
+
+    # Remove the TaskCompletion record for analytics
+    from app.models.task_completion import TaskCompletion
+    completion_record = db.query(TaskCompletion).filter(
+        TaskCompletion.child_id == current_user.id,
+        TaskCompletion.task_id == task.id,
+        TaskCompletion.completion_date == today
+    ).first()
+
+    if completion_record:
+        db.delete(completion_record)
+
+    db.commit()
+
+    return {
+        "message": "Task uncompleted",
+        "points_deducted": task.points,
+        "new_total": current_user.total_lifetime_points
+    }
+
+
 @router.put("/{task_id}")
 async def update_task(
     task_id: int,
