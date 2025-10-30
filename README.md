@@ -4,6 +4,28 @@ A comprehensive gamified task management system for families with 60+ pre-loaded
 
 ## ✨ Latest Updates
 
+### 🎨 Theme System with Animations & Streaks (New!)
+**Gamified Experience for Kids:**
+- **5 Engaging Themes**: Minecraft, Roblox, Barbie, Pokémon, Ninja Turtles
+- **Custom Theme Elements**:
+  - Unique color schemes and backgrounds
+  - Theme-specific icons for points, tasks, and rewards
+  - Character avatars to choose from
+  - Sound effects for task completion (ready for audio files)
+- **Animated Celebrations**:
+  - Flying points animation - points fly from task to counter
+  - Confetti burst on task completion
+  - Screen shake for high-value tasks (100+ points)
+  - Toast notifications with theme styling
+  - Counter increment animations
+- **Streak System**:
+  - Track consecutive days of task completion
+  - Animated streak badge with pulsing fire icon
+  - Longest streak record keeping
+  - Milestone celebrations (3, 7, 14, 30, 60, 100 days)
+  - Automatic reset if a day is missed
+- **Theme Selector**: Kids choose their favorite theme and avatar during registration
+
 ### 📊 Enhanced Parent Dashboard (New!)
 **Comprehensive Family Insights:**
 - **Live Date/Time Display** - Real-time clock in dashboard header, updates every minute
@@ -201,15 +223,15 @@ python main.py
 family-task-tracker/
 ├── app/
 │   ├── api/                    # API endpoints
-│   │   ├── auth.py            # Registration, login, user management, children stats
-│   │   ├── tasks.py           # Task CRUD, completion, templates, assignments, bulk operations
+│   │   ├── auth.py            # Registration, login, theme updates, user management, children stats
+│   │   ├── tasks.py           # Task CRUD, completion with streak tracking, templates, assignments, bulk operations
 │   │   ├── approvals.py       # Task approval workflow
 │   │   ├── rewards.py         # Reward CRUD operations
-│   │   └── families.py        # Family join codes, family members list
+│   │   └── families.py        # Family join codes, family members list with last login
 │   ├── core/                   # Security, dependencies
 │   ├── models/                 # Database models
 │   │   ├── task.py            # Task model with approval field
-│   │   ├── profile.py         # User/child profiles
+│   │   ├── profile.py         # User/child profiles with theme, avatar, streaks
 │   │   ├── family.py          # Family with join codes
 │   │   ├── daily_progress.py  # Daily completion tracking
 │   │   └── task_approval.py   # Approval requests
@@ -218,9 +240,11 @@ family-task-tracker/
 │   └── main.py                 # FastAPI app
 ├── static/
 │   ├── css/
-│   │   └── main.css           # Custom styles
+│   │   └── main.css           # Custom styles with theme animations
 │   └── js/
 │       ├── app.js             # General app JavaScript
+│       ├── themes.js          # Theme configurations (5 themes)
+│       ├── animations.js      # Animation system (confetti, flying points, etc.)
 │       └── task-templates.js  # 60+ pre-loaded task templates
 ├── templates/                  # Jinja2 templates
 │   ├── child/

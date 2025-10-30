@@ -27,7 +27,10 @@ class Profile(Base):
     last_name = Column(String(100))
     role = Column(SQLEnum(UserRole), default=UserRole.CHILD, nullable=False)
     theme = Column(String(50), default="minecraft")
+    avatar = Column(String(100), nullable=True)  # Avatar choice within theme
     avatar_url = Column(String(500))
+    current_streak = Column(Integer, default=0, nullable=False)  # Consecutive days completing tasks
+    longest_streak = Column(Integer, default=0, nullable=False)  # Best streak ever
     total_lifetime_points = Column(Integer, default=0, nullable=False)
     is_active = Column(Integer, default=1, nullable=False)
     last_login = Column(DateTime, nullable=True)

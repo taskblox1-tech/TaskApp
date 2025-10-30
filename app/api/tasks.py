@@ -9,9 +9,45 @@ from app.models.profile import Profile
 from app.models.task import Task
 from app.models.task_assignment import TaskAssignment
 from app.models.daily_progress import DailyProgress
-from datetime import date
+from datetime import date, timedelta
 
 router = APIRouter()
+
+
+def update_streak(user: Profile, db: Session):
+    """Update user's streak when they complete tasks"""
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+
+    # Check if there's activity yesterday
+    yesterday_progress = db.query(DailyProgress).filter(
+        DailyProgress.child_id == user.id,
+        DailyProgress.date == yesterday
+    ).first()
+
+    # Check if there's activity for any day before today
+    last_activity = db.query(DailyProgress).filter(
+        DailyProgress.child_id == user.id,
+        DailyProgress.date < today
+    ).order_by(DailyProgress.date.desc()).first()
+
+    if yesterday_progress and len(yesterday_progress.completed_task_ids or []) > 0:
+        # Consecutive day - increment streak
+        user.current_streak += 1
+        if user.current_streak > user.longest_streak:
+            user.longest_streak = user.current_streak
+    elif last_activity:
+        # There was activity before but not yesterday - reset streak to 1
+        user.current_streak = 1
+        if user.current_streak > user.longest_streak:
+            user.longest_streak = user.current_streak
+    else:
+        # First ever activity - start streak
+        user.current_streak = 1
+        if user.current_streak > user.longest_streak:
+            user.longest_streak = user.current_streak
+
+    return user.current_streak
 
 
 @router.get("/")
@@ -190,9 +226,17 @@ async def complete_task(
         # Update user's total points
         current_user.total_lifetime_points += task.points
 
+        # Update streak
+        streak_count = update_streak(current_user, db)
+
         db.commit()
 
-        return {"message": "Task completed!", "points_earned": task.points}
+        return {
+            "message": "Task completed!",
+            "points_earned": task.points,
+            "new_total": current_user.total_lifetime_points,
+            "current_streak": streak_count
+        }
 
 
 @router.put("/{task_id}")

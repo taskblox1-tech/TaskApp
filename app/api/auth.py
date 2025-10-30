@@ -189,7 +189,32 @@ async def get_me(current_user: Profile = Depends(get_current_user)):
         "role": current_user.role,
         "family_id": current_user.family_id,
         "theme": current_user.theme,
+        "avatar": current_user.avatar,
+        "current_streak": current_user.current_streak,
+        "longest_streak": current_user.longest_streak,
         "total_points": current_user.total_lifetime_points
+    }
+
+
+@router.put("/theme")
+async def update_theme(
+    theme_data: dict,
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user's theme and avatar"""
+    if "theme" in theme_data:
+        current_user.theme = theme_data["theme"]
+    if "avatar" in theme_data:
+        current_user.avatar = theme_data["avatar"]
+
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "success": True,
+        "theme": current_user.theme,
+        "avatar": current_user.avatar
     }
 
 
