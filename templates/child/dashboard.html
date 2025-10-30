@@ -1117,10 +1117,19 @@ function childDashboard() {
         
         filterTasks(type) {
             this.filter = type;
+            console.log('Time filter changed to:', type);
+            console.log('Total tasks:', this.tasks.length);
+            console.log('Filtered tasks:', this.filteredTasks.length);
         },
 
         filterByCategory(category) {
             this.categoryFilter = category;
+            console.log('Category filter changed to:', category);
+            console.log('Filtered tasks:', this.filteredTasks.length);
+            // Log some sample task categories
+            if (this.tasks.length > 0) {
+                console.log('Sample task categories:', this.tasks.slice(0, 3).map(t => t.category));
+            }
         },
 
         getTasksForPeriod(period) {
