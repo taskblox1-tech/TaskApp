@@ -452,8 +452,8 @@
                          class="mt-6 p-6 bg-gray-50 rounded-xl">
                         <h3 class="font-bold text-lg mb-4">
                             Choose Your Avatar
-                            <span x-show="allThemes[selectedTheme]"
-                                  x-text="'(' + allThemes[selectedTheme].name + ')'"></span>
+                            <span x-show="selectedTheme && allThemes[selectedTheme]"
+                                  x-text="selectedTheme && allThemes[selectedTheme] ? '(' + allThemes[selectedTheme].name + ')' : ''"></span>
                         </h3>
 
                         <!-- Avatar Grid -->
