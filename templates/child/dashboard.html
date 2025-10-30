@@ -55,14 +55,28 @@
 
                 <!-- Character + Points Display -->
                 <div class="points-display text-center flex-shrink-0">
-                    <!-- Character Image (Large, Full) -->
-                    <div x-show="getAvatarImageUrl()" class="character-image-container mb-3">
-                        <img :src="getAvatarImageUrl()"
-                             :alt="currentAvatar"
-                             class="character-full-image mx-auto"
-                             style="width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.6));">
-                    </div>
-                    <div x-show="!getAvatarImageUrl()" class="text-8xl mb-3" x-text="getAvatarEmoji()"></div>
+                    <!-- Character Image (Large, Full) - Always try to show if available -->
+                    <template x-if="getAvatarImageUrl()">
+                        <div class="character-image-container mb-3">
+                            <img :src="getAvatarImageUrl()"
+                                 :alt="currentAvatar"
+                                 class="character-full-image mx-auto"
+                                 style="width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.6));"
+                                 @error="console.error('Image failed to load:', $el.src)">
+                        </div>
+                    </template>
+
+                    <!-- Fallback Emoji if no image -->
+                    <template x-if="!getAvatarImageUrl()">
+                        <div class="text-8xl mb-3">
+                            <span x-text="getAvatarEmoji()"></span>
+                            <div class="text-xs text-white opacity-75 mt-2">
+                                Debug: Avatar=<span x-text="currentAvatar"></span>,
+                                Theme=<span x-text="theme"></span>,
+                                URL=<span x-text="getAvatarImageUrl() || 'none'"></span>
+                            </div>
+                        </div>
+                    </template>
 
                     <!-- Points Counter -->
                     <div class="text-6xl font-bold mb-2" id="points-counter" style="text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);" x-text="totalPoints"></div>
