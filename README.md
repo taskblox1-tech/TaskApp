@@ -1,36 +1,95 @@
 # Family Task Tracker
 
-A gamified task management system for families with approval workflows, points, and rewards.
+A comprehensive gamified task management system for families with 60+ pre-loaded task templates, approval workflows, points, and rewards. Perfect for teaching responsibility, building good habits, and motivating children with achievements and rewards.
 
-## ✅ Features Implemented
+## ✨ Latest Updates
+
+### 🎯 Task Template Library (New!)
+**60+ Pre-loaded Tasks Across 9 Categories**
+- No more creating tasks from scratch
+- 3-step wizard: Choose category → Select template → Customize
+- Customize any template (title, points, icon, schedule, approval settings)
+- Or create completely custom tasks
+
+**Categories Include:**
+1. **Morning Tasks** (Weekday/Weekend/Anyday) - Breakfast, teeth brushing, backpack prep
+2. **Evening Tasks** (Weekday/Weekend/Anyday) - Homework, room clean, bedtime routine
+3. **Academic Excellence** - Perfect test scores, teacher praise, grade improvements
+4. **Health & Fitness** - Exercise, water intake, outdoor play
+5. **Character & Behavior** - Kindness, respect, good attitude
+6. **Extra Household Tasks** - Cooking help, cleaning, organizing
+7. **Creative & Development** - Music practice, art, journaling
+8. **Bonus Challenges** - Screen-free days, reading goals, weekly achievements
+
+**Smart Point System:**
+- Daily basics: 20-60 points
+- Extra effort tasks: 65-90 points
+- Academic achievements: 100-150 points
+- Major accomplishments: 150-200 points
+
+### 🔐 Parent Approval System
+- Toggle "requires approval" on any task
+- Perfect for academic achievements, behavior rewards, and teacher feedback
+- Children see "Pending Approval" badge on submitted tasks
+- Parents review and approve/deny from their dashboard
+- Points awarded only after parent approval
+
+### 👨‍👩‍👧 Family Management
+- Easy registration with family join codes
+- Parents create families automatically
+- Children join with 6-character family code
+- Multiple children per family supported
+- Theme customization for each child
+
+## ✅ Core Features
 
 ### Authentication & Authorization
 - JWT token-based authentication
-- Role-based access (Admin/Parent and Child)
-- Secure password hashing
-- Cookie-based sessions
+- Role-based access (Parent and Child)
+- Secure password hashing with bcrypt
+- Cookie-based sessions (7-day expiry)
+- Family join code system
 
 ### Task Management
-- Create and assign tasks to children
-- Task categories (Morning, Evening, Anytime)
-- Point system for completed tasks
-- Task approval workflow
+- **60+ pre-loaded task templates** organized by category
+- Create custom tasks or use templates
+- Assign tasks to specific children or all children
+- Task scheduling (Morning/Evening/Anytime)
+- Day type filtering (Weekday/Weekend/Anyday)
+- Customizable icons, points, and descriptions
+- Parent approval toggle for sensitive tasks
 
 ### Approval System
-- Tasks can require parent approval
-- Children submit tasks for approval
-- Parents can approve or deny
-- Points awarded upon approval
+- Tasks can require parent approval before awarding points
+- Children submit completed tasks with "nudge" button
+- Parents see pending approvals in dedicated tab
+- Approve or deny with one click
+- Perfect for academic achievements and character development
 
 ### Rewards
 - Define rewards with point costs
-- Children can see available rewards
-- Track lifetime points
+- Children can see what they're working toward
+- Track lifetime points across all tasks
+- Visual indicators showing affordable rewards
 
 ### Dashboards
-- Child dashboard with task list and progress tracking
-- Parent dashboard with family overview and approval queue
-- Responsive design with Alpine.js
+
+**Parent Dashboard:**
+- Family join code display with copy button
+- Real-time stats (total children, tasks, approvals, points)
+- 4 organized tabs: Children, Approvals, All Tasks, Rewards
+- Quick Actions panel for common tasks
+- 3-step task creation wizard with template selection
+- Approve/deny pending task completions
+
+**Child Dashboard:**
+- Personalized greeting with chosen theme icon
+- Large points display showing total achievements
+- Today's progress tracking with visual progress bar
+- Task filters (All, Morning, Evening, Anytime)
+- One-tap task completion
+- "Pending Approval" badges for tasks awaiting parent review
+- Rewards preview showing what's achievable
 
 ## 🚀 Quick Start
 
@@ -97,21 +156,40 @@ python main.py
 ```
 family-task-tracker/
 ├── app/
-│   ├── api/          # API endpoints
-│   ├── core/         # Security, dependencies
-│   ├── models/       # Database models
-│   ├── config.py     # Settings
-│   ├── database.py   # DB connection
-│   └── main.py       # FastAPI app
+│   ├── api/                    # API endpoints
+│   │   ├── auth.py            # Registration, login, user management
+│   │   ├── tasks.py           # Task CRUD, completion, templates
+│   │   ├── approvals.py       # Task approval workflow
+│   │   ├── rewards.py         # Reward management
+│   │   └── families.py        # Family join codes
+│   ├── core/                   # Security, dependencies
+│   ├── models/                 # Database models
+│   │   ├── task.py            # Task model with approval field
+│   │   ├── profile.py         # User/child profiles
+│   │   ├── family.py          # Family with join codes
+│   │   ├── daily_progress.py  # Daily completion tracking
+│   │   └── task_approval.py   # Approval requests
+│   ├── config.py               # Environment settings
+│   ├── database.py             # PostgreSQL connection
+│   └── main.py                 # FastAPI app
 ├── static/
-│   └── css/
-│       └── main.css  # Styles
-├── templates/        # Jinja2 templates
+│   ├── css/
+│   │   └── main.css           # Custom styles
+│   └── js/
+│       ├── app.js             # General app JavaScript
+│       └── task-templates.js  # 60+ pre-loaded task templates
+├── templates/                  # Jinja2 templates
 │   ├── child/
+│   │   └── dashboard.html     # Child task view with approval badges
 │   ├── parent/
-│   └── auth/
-├── requirements.txt  # Dependencies
-└── render.yaml      # Render config
+│   │   └── dashboard.html     # Parent view with 3-step task wizard
+│   ├── auth/
+│   │   ├── login.html
+│   │   └── register.html      # Family creation/joining
+│   └── base.html              # Base template
+├── requirements.txt            # Python dependencies
+├── render.yaml                 # Render.com deployment config
+└── README.md                   # This file
 ```
 
 ## 🔑 Environment Variables
@@ -123,13 +201,38 @@ Set these in Render.com:
 
 ## 🎯 Usage Flow
 
-1. **Parent** logs in and creates child profiles
-2. **Parent** creates tasks and assigns to children
-3. **Parent** sets which tasks require approval
-4. **Child** logs in and sees assigned tasks
-5. **Child** completes tasks (with or without approval)
-6. **Parent** approves pending tasks
-7. **Child** earns points and can view rewards
+### Getting Started
+1. **Parent** creates account (auto-generates family join code)
+2. **Parent** shares join code with children
+3. **Children** register using join code and choose theme
+
+### Creating Tasks (3-Step Wizard)
+1. **Choose Category** - Select from 9 pre-loaded categories or create custom
+2. **Select Template** - Pick from category templates or skip to custom
+3. **Customize** - Adjust title, points, icon, schedule, approval settings, and assign to children
+
+### Daily Usage
+1. **Child** logs in and sees assigned tasks organized by time (Morning/Evening/Anytime)
+2. **Child** completes tasks by tapping the icon
+   - Tasks without approval: Instant points awarded
+   - Tasks with approval: Marked "Pending Approval"
+3. **Parent** reviews pending approvals in Approvals tab
+4. **Parent** approves or denies with one click
+5. **Child** earns points and can view available rewards
+
+### Example Task Workflows
+
+**Academic Achievement:**
+- Parent creates "Perfect Test Score" task (requires approval, 150 pts)
+- Child completes test and marks task as done
+- Child shows test to parent
+- Parent approves task → Child earns 150 points
+
+**Daily Routine:**
+- Parent creates "Brush Teeth" task (no approval, 40 pts)
+- Child brushes teeth and marks complete
+- Points awarded immediately
+- Task resets daily
 
 ## 📚 Tech Stack
 

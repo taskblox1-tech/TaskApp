@@ -2,6 +2,10 @@
 
 {% block title %}Parent Dashboard{% endblock %}
 
+{% block extra_head %}
+<script src="/static/js/task-templates.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen bg-gray-50" x-data="parentDashboard()">
     <!-- Header -->
@@ -274,13 +278,198 @@
 
     <!-- Task Creation Modal -->
     <div x-show="showTaskModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="showTaskModal = false">
-        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Create New Task</h2>
-                <button @click="showTaskModal = false" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b p-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">Create New Task</h2>
+                    <button @click="closeTaskModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
             </div>
-            <p class="text-gray-600 mb-4">This feature will be available soon! For now, you can use the seed data script to add sample tasks.</p>
-            <button @click="showTaskModal = false" class="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700">Close</button>
+
+            <div class="p-6">
+                <!-- Step 1: Choose Category -->
+                <div x-show="taskStep === 1">
+                    <h3 class="text-lg font-bold mb-4">Choose a Category</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <template x-for="category in taskCategories" :key="category">
+                            <button
+                                @click="selectTaskCategory(category)"
+                                class="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all text-left"
+                            >
+                                <div class="font-semibold text-gray-900" x-text="category"></div>
+                                <div class="text-sm text-gray-600" x-text="getTasksByCategory(category).length + ' templates'"></div>
+                            </button>
+                        </template>
+                    </div>
+                    <div class="mt-4">
+                        <button @click="taskStep = 3; newTask = {title: '', description: '', icon: '✅', points: 10, period: 'anytime', day_type: 'anyday', requires_approval: false, library_category: 'Custom'}" class="text-blue-600 hover:text-blue-800 font-medium">
+                            + Create Custom Task
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Choose Template -->
+                <div x-show="taskStep === 2">
+                    <div class="mb-4">
+                        <button @click="taskStep = 1" class="text-blue-600 hover:text-blue-800">
+                            ← Back to Categories
+                        </button>
+                    </div>
+                    <h3 class="text-lg font-bold mb-4" x-text="selectedTaskCategory"></h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <template x-for="template in availableTaskTemplates" :key="template.title">
+                            <button
+                                @click="selectTaskTemplate(template)"
+                                class="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all text-left"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl" x-text="template.icon"></span>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-gray-900" x-text="template.title"></div>
+                                        <div class="text-sm text-gray-600" x-text="template.description || ''"></div>
+                                        <div class="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                                            <span x-text="template.points + ' points'"></span>
+                                            <span class="capitalize" x-text="template.period"></span>
+                                            <span class="capitalize" x-text="template.day_type"></span>
+                                            <span x-show="template.requires_approval" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Needs Approval</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Step 3: Customize Task -->
+                <div x-show="taskStep === 3">
+                    <div class="mb-4">
+                        <button @click="taskStep = selectedTaskCategory ? 2 : 1" class="text-blue-600 hover:text-blue-800">
+                            ← Back
+                        </button>
+                    </div>
+                    <h3 class="text-lg font-bold mb-4">Customize Task</h3>
+
+                    <form @submit.prevent="createTask()" class="space-y-4">
+                        <!-- Title -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
+                            <input
+                                type="text"
+                                x-model="newTask.title"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            >
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                            <textarea
+                                x-model="newTask.description"
+                                rows="2"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            ></textarea>
+                        </div>
+
+                        <!-- Icon and Points -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                                <input
+                                    type="text"
+                                    x-model="newTask.icon"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-2xl text-center"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Points *</label>
+                                <input
+                                    type="number"
+                                    x-model.number="newTask.points"
+                                    min="1"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Period and Day Type -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">When</label>
+                                <select
+                                    x-model="newTask.period"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="morning">Morning</option>
+                                    <option value="evening">Evening</option>
+                                    <option value="anytime">Anytime</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Day Type</label>
+                                <select
+                                    x-model="newTask.day_type"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="anyday">Any Day</option>
+                                    <option value="weekday">Weekday Only</option>
+                                    <option value="weekend">Weekend Only</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Requires Approval -->
+                        <div class="flex items-center">
+                            <input
+                                type="checkbox"
+                                id="requiresApproval"
+                                x-model="newTask.requires_approval"
+                                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            >
+                            <label for="requiresApproval" class="ml-2 text-sm text-gray-700">
+                                Requires parent approval before awarding points
+                            </label>
+                        </div>
+
+                        <!-- Assign to Children -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Assign To (optional)</label>
+                            <div class="space-y-2">
+                                <template x-for="child in children" :key="child.id">
+                                    <label class="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            :value="child.id"
+                                            x-model="newTask.assigned_to"
+                                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        >
+                                        <span class="ml-2 text-sm" x-text="child.first_name + ' ' + child.last_name"></span>
+                                    </label>
+                                </template>
+                                <p x-show="children.length === 0" class="text-sm text-gray-500">No children added yet. Task will be available to all children when they join.</p>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="flex gap-3 pt-4">
+                            <button
+                                type="button"
+                                @click="closeTaskModal()"
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            >
+                                Create Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -308,6 +497,21 @@ function parentDashboard() {
         familyJoinCode: '',
         showTaskModal: false,
         showRewardModal: false,
+        taskStep: 1,
+        taskCategories: [],
+        selectedTaskCategory: '',
+        availableTaskTemplates: [],
+        newTask: {
+            title: '',
+            description: '',
+            icon: '✅',
+            points: 10,
+            period: 'anytime',
+            day_type: 'anyday',
+            requires_approval: false,
+            library_category: '',
+            assigned_to: []
+        },
         stats: {
             totalTasks: 0,
             completedToday: 0,
@@ -318,6 +522,7 @@ function parentDashboard() {
         async init() {
             await this.loadData();
             await this.loadFamilyInfo();
+            this.taskCategories = getTaskCategories();
         },
 
         async loadFamilyInfo() {
@@ -443,6 +648,63 @@ function parentDashboard() {
                 console.error('Error denying task:', error);
                 alert('Failed to deny task');
             }
+        },
+
+        // Task Creation Functions
+        selectTaskCategory(category) {
+            this.selectedTaskCategory = category;
+            this.availableTaskTemplates = getTasksByCategory(category);
+            this.taskStep = 2;
+        },
+
+        selectTaskTemplate(template) {
+            this.newTask = {
+                ...template,
+                assigned_to: []
+            };
+            this.taskStep = 3;
+        },
+
+        async createTask() {
+            try {
+                const res = await fetch('/api/tasks/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(this.newTask)
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    alert('✅ Task created successfully!');
+                    this.closeTaskModal();
+                    await this.loadData();
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                alert('Failed to create task');
+            }
+        },
+
+        closeTaskModal() {
+            this.showTaskModal = false;
+            this.taskStep = 1;
+            this.selectedTaskCategory = '';
+            this.availableTaskTemplates = [];
+            this.newTask = {
+                title: '',
+                description: '',
+                icon: '✅',
+                points: 10,
+                period: 'anytime',
+                day_type: 'anyday',
+                requires_approval: false,
+                library_category: '',
+                assigned_to: []
+            };
         },
 
         async logout() {

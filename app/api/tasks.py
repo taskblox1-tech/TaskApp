@@ -65,6 +65,58 @@ async def get_my_tasks(
     }
 
 
+@router.post("/")
+async def create_task(
+    task_data: dict,
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new task (parent only)"""
+    if current_user.role != "parent":
+        raise HTTPException(status_code=403, detail="Only parents can create tasks")
+
+    if not current_user.family_id:
+        raise HTTPException(status_code=400, detail="No family found")
+
+    # Create the task
+    from app.models.task import TaskPeriod, TaskCategory, TaskDayType
+
+    new_task = Task(
+        family_id=current_user.family_id,
+        title=task_data.get("title"),
+        description=task_data.get("description", ""),
+        points=task_data.get("points", 10),
+        icon=task_data.get("icon", "✅"),
+        period=TaskPeriod(task_data.get("period", "anytime")),
+        category=TaskCategory.CHORES,  # Default category
+        day_type=TaskDayType(task_data.get("day_type", "anyday")),
+        requires_approval=1 if task_data.get("requires_approval", False) else 0,
+        library_category=task_data.get("library_category", ""),
+        is_active=1
+    )
+
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
+
+    # Optionally assign to specific children
+    assigned_child_ids = task_data.get("assigned_to", [])
+    if assigned_child_ids:
+        for child_id in assigned_child_ids:
+            assignment = TaskAssignment(
+                task_id=new_task.id,
+                child_id=child_id
+            )
+            db.add(assignment)
+        db.commit()
+
+    return {
+        "id": new_task.id,
+        "title": new_task.title,
+        "message": "Task created successfully!"
+    }
+
+
 @router.post("/{task_id}/complete")
 async def complete_task(
     task_id: int,
