@@ -203,12 +203,14 @@ function registerForm() {
                     // Registration successful
                     alert('Account created successfully!');
 
-                    // Redirect based on role
-                    if (result.user.role === 'child') {
-                        window.location.href = '/child/dashboard';
-                    } else {
-                        window.location.href = '/parent/dashboard';
-                    }
+                    // Small delay to ensure cookie is set before redirect
+                    setTimeout(() => {
+                        if (result.user.role === 'child') {
+                            window.location.href = '/dashboard';
+                        } else {
+                            window.location.href = '/parent/dashboard';
+                        }
+                    }, 100);
                 } else {
                     alert(result.detail || 'Registration failed');
                 }

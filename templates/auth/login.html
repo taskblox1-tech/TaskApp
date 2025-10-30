@@ -74,11 +74,14 @@ function loginForm() {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    if (data.user.role === 'child') {
-                        window.location.href = '/dashboard';
-                    } else {
-                        window.location.href = '/parent/dashboard';
-                    }
+                    // Small delay to ensure cookie is set before redirect
+                    setTimeout(() => {
+                        if (data.user.role === 'child') {
+                            window.location.href = '/dashboard';
+                        } else {
+                            window.location.href = '/parent/dashboard';
+                        }
+                    }, 100);
                 } else {
                     alert(data.detail || 'Login failed');
                 }
