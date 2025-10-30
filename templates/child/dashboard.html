@@ -173,17 +173,7 @@
                 <button @click="filterByCategory('all')"
                         :class="categoryFilter === 'all' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
                         class="px-3 py-2 rounded-lg font-medium text-sm">
-                    All
-                </button>
-                <button @click="filterByCategory('Morning Tasks')"
-                        :class="categoryFilter === 'Morning Tasks' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
-                        class="px-3 py-2 rounded-lg font-medium text-sm">
-                    🌅 Morning Tasks
-                </button>
-                <button @click="filterByCategory('Evening Tasks')"
-                        :class="categoryFilter === 'Evening Tasks' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
-                        class="px-3 py-2 rounded-lg font-medium text-sm">
-                    🌙 Evening Tasks
+                    All Categories
                 </button>
                 <button @click="filterByCategory('Academic Excellence')"
                         :class="categoryFilter === 'Academic Excellence' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border'"
@@ -1031,19 +1021,15 @@ function childDashboard() {
         
         filterTasks(type) {
             this.filter = type;
-            console.log('Filter changed to:', type, 'Tasks:', this.tasks.length);
         },
 
         filterByCategory(category) {
             this.categoryFilter = category;
-            console.log('Category filter changed to:', category, 'Filtered tasks:', this.filteredTasks.length);
         },
 
         getTasksForPeriod(period) {
             // Get tasks for a specific period (morning/evening/anytime)
-            const tasks = this.filteredTasks.filter(t => t.period === period);
-            console.log(`Tasks for ${period}:`, tasks.length, 'Sample task period:', this.filteredTasks[0]?.period);
-            return tasks;
+            return this.filteredTasks.filter(t => t.period === period);
         },
 
         hasVisibleTasks() {
