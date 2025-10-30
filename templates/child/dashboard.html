@@ -28,24 +28,64 @@
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto px-4 py-6">
         
-        <!-- Today's Progress -->
+        <!-- Progress Stats with Filtering -->
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4">📅 Today's Progress</h2>
-            <div class="grid grid-cols-2 gap-4 mb-4">
+            <!-- Filter Buttons -->
+            <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                <button @click="changePeriod('today')"
+                        :class="selectedPeriod === 'today' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all">
+                    📅 Today
+                </button>
+                <button @click="changePeriod('week')"
+                        :class="selectedPeriod === 'week' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all">
+                    📆 This Week
+                </button>
+                <button @click="changePeriod('month')"
+                        :class="selectedPeriod === 'month' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all">
+                    📊 This Month
+                </button>
+                <button @click="changePeriod('year')"
+                        :class="selectedPeriod === 'year' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all">
+                    🎯 This Year
+                </button>
+                <button @click="changePeriod('all')"
+                        :class="selectedPeriod === 'all' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all">
+                    ⭐ All Time
+                </button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 <div class="text-center p-4 bg-green-50 rounded-lg">
-                    <div class="text-3xl font-bold text-green-600" x-text="todayStats.completed"></div>
-                    <div class="text-sm text-gray-600">Completed</div>
+                    <div class="text-3xl font-bold text-green-600" x-text="progressStats.total_completed"></div>
+                    <div class="text-xs text-gray-600">Tasks Done</div>
                 </div>
                 <div class="text-center p-4 bg-blue-50 rounded-lg">
-                    <div class="text-3xl font-bold text-blue-600" x-text="todayStats.pointsEarned"></div>
-                    <div class="text-sm text-gray-600">Points Earned</div>
+                    <div class="text-3xl font-bold text-blue-600" x-text="progressStats.total_points"></div>
+                    <div class="text-xs text-gray-600">Points Earned</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-3xl font-bold text-purple-600" x-text="progressStats.avg_daily_points"></div>
+                    <div class="text-xs text-gray-600">Avg/Day</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-600" x-text="progressStats.current_streak + '🔥'"></div>
+                    <div class="text-xs text-gray-600">Day Streak</div>
                 </div>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-4">
-                <div class="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full transition-all" 
-                     :style="`width: ${progressPercent}%`"></div>
+
+            <!-- Best Day (only show for week/month/year/all) -->
+            <div x-show="selectedPeriod !== 'today' && progressStats.best_day" class="text-center p-3 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+                <div class="text-sm font-medium text-yellow-800">
+                    🏆 Best Day: <span x-text="progressStats.best_day"></span>
+                    (<span x-text="progressStats.best_day_points"></span> points!)
+                </div>
             </div>
-            <div class="text-center text-sm text-gray-600 mt-2" x-text="progressPercent + '% Complete'"></div>
         </div>
 
         <!-- Task Filters -->
@@ -141,25 +181,33 @@ function childDashboard() {
         tasks: [],
         rewards: [],
         filter: 'all',
-        todayStats: {
-            completed: 0,
-            pointsEarned: 0
+        selectedPeriod: 'today',
+        progressStats: {
+            total_completed: 0,
+            total_points: 0,
+            avg_daily_points: 0,
+            current_streak: 0,
+            best_day: null,
+            best_day_points: 0,
+            completed_task_ids: [],
+            pending_approval_ids: []
         },
-        
+
         get filteredTasks() {
             if (this.filter === 'all') return this.tasks;
             return this.tasks.filter(t => t.period === this.filter);
         },
-        
-        get progressPercent() {
-            if (this.tasks.length === 0) return 0;
-            return Math.round((this.todayStats.completed / this.tasks.length) * 100);
-        },
-        
+
         async init() {
             await this.loadProfile();
+            await this.loadProgressStats();
             await this.loadTasks();
             await this.loadRewards();
+        },
+
+        async changePeriod(period) {
+            this.selectedPeriod = period;
+            await this.loadProgressStats();
         },
         
         async loadProfile() {
@@ -179,6 +227,21 @@ function childDashboard() {
             }
         },
 
+        async loadProgressStats() {
+            try {
+                const res = await fetch(`/api/progress/stats?period=${this.selectedPeriod}`, {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    this.progressStats = await res.json();
+                    // Mark tasks as completed based on today's progress
+                    this.updateTaskCompletionStatus();
+                }
+            } catch (error) {
+                console.error('Error loading progress stats:', error);
+            }
+        },
+
         async loadTasks() {
             try {
                 const res = await fetch('/api/tasks', {
@@ -190,11 +253,21 @@ function childDashboard() {
                         ...t,
                         completed: false
                     }));
-                    this.updateStats();
+                    this.updateTaskCompletionStatus();
                 }
             } catch (error) {
                 console.error('Error loading tasks:', error);
             }
+        },
+
+        updateTaskCompletionStatus() {
+            // Mark tasks as completed based on today's progress
+            const completedIds = this.progressStats.completed_task_ids || [];
+            const pendingIds = this.progressStats.pending_approval_ids || [];
+
+            this.tasks.forEach(task => {
+                task.completed = completedIds.includes(task.id) || pendingIds.includes(task.id);
+            });
         },
 
         async loadRewards() {
@@ -226,7 +299,6 @@ function childDashboard() {
                 if (res.ok) {
                     const data = await res.json();
                     task.completed = true;
-                    this.updateStats();
 
                     if (data.requires_approval) {
                         alert('✅ ' + data.message);
@@ -234,6 +306,9 @@ function childDashboard() {
                         this.totalPoints += data.points_earned;
                         alert('🎉 ' + data.message + ' You earned ' + data.points_earned + ' points!');
                     }
+
+                    // Reload progress stats to update display
+                    await this.loadProgressStats();
                 } else {
                     const error = await res.json();
                     alert('Error: ' + error.detail);
@@ -242,13 +317,6 @@ function childDashboard() {
                 console.error('Error completing task:', error);
                 alert('Failed to complete task');
             }
-        },
-        
-        updateStats() {
-            this.todayStats.completed = this.tasks.filter(t => t.completed).length;
-            this.todayStats.pointsEarned = this.tasks
-                .filter(t => t.completed)
-                .reduce((sum, t) => sum + t.points, 0);
         },
         
         filterTasks(type) {
