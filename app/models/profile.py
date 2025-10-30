@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLEnum, Boolean, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -29,6 +29,8 @@ class Profile(Base):
     theme = Column(String(50), default="minecraft")
     avatar = Column(String(100), nullable=True)  # Avatar choice within theme
     avatar_url = Column(String(500))
+    theme_enabled = Column(Boolean, default=False, nullable=False)  # Whether custom theme is enabled
+    custom_colors = Column(JSON, nullable=True)  # Custom color scheme for parents
     current_streak = Column(Integer, default=0, nullable=False)  # Consecutive days completing tasks
     longest_streak = Column(Integer, default=0, nullable=False)  # Best streak ever
     total_lifetime_points = Column(Integer, default=0, nullable=False)

@@ -4,10 +4,12 @@
 
 {% block extra_head %}
 <script src="/static/js/task-templates.js"></script>
+<script src="/static/js/themes.js"></script>
+<script src="/static/js/animations.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50" x-data="parentDashboard()">
+<div class="min-h-screen bg-gray-50" x-data="parentDashboard()" :style="themeStyles">
     <!-- Header -->
     <header class="bg-white shadow">
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -18,7 +20,13 @@
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <div class="text-sm text-gray-600" x-text="currentDateTime"></div>
-                    <button @click="logout()" class="text-sm text-red-600 hover:text-red-800 font-medium">Logout</button>
+                    <div class="flex gap-2">
+                        <button @click="showThemeSelector = true"
+                                class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium">
+                            🎨 Customize Theme
+                        </button>
+                        <button @click="logout()" class="text-sm text-red-600 hover:text-red-800 font-medium px-4 py-2">Logout</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -853,6 +861,156 @@
             </form>
         </div>
     </div>
+
+    <!-- Theme Selector Modal -->
+    <div x-show="showThemeSelector" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="showThemeSelector = false"></div>
+
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto" @click.stop>
+                <!-- Header -->
+                <div class="sticky top-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-t-2xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold">🎨 Customize Your Theme</h2>
+                            <p class="text-sm opacity-90 mt-1">Choose from kid themes or create your own custom colors</p>
+                        </div>
+                        <button @click="showThemeSelector = false" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 text-2xl">
+                            ×
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <!-- Theme Toggle -->
+                    <div class="mb-6 p-4 bg-gray-100 rounded-lg">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" x-model="themeEnabled" class="w-5 h-5 text-purple-600 rounded">
+                            <span class="ml-3 font-medium text-gray-900">Enable Theme Customization</span>
+                        </label>
+                        <p class="text-sm text-gray-600 mt-2 ml-8">Turn this on to customize your dashboard appearance</p>
+                    </div>
+
+                    <div x-show="themeEnabled">
+                        <!-- Tabs for Preset vs Custom -->
+                        <div class="mb-6">
+                            <div class="flex gap-2 border-b">
+                                <button @click="themeTab = 'preset'"
+                                        :class="themeTab === 'preset' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-600'"
+                                        class="px-6 py-3 font-medium transition-colors">
+                                    🎮 Preset Themes
+                                </button>
+                                <button @click="themeTab = 'custom'"
+                                        :class="themeTab === 'custom' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-600'"
+                                        class="px-6 py-3 font-medium transition-colors">
+                                    🎨 Custom Colors
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Preset Themes -->
+                        <div x-show="themeTab === 'preset'">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <template x-for="(themeData, themeName) in allThemes" :key="themeName">
+                                    <button @click="selectPresetTheme(themeName)"
+                                            class="p-4 rounded-xl border-2 transition-all hover:shadow-lg"
+                                            :class="selectedTheme === themeName ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'"
+                                            :style="'background: ' + themeData.colors.background">
+                                        <div class="bg-white bg-opacity-90 backdrop-blur-sm rounded-lg p-4">
+                                            <div class="text-3xl mb-2" x-text="themeData.icons.points"></div>
+                                            <div class="font-bold text-gray-900" x-text="themeData.name"></div>
+                                            <div class="flex gap-2 mt-3">
+                                                <div class="w-8 h-8 rounded-full" :style="'background: ' + themeData.colors.primary"></div>
+                                                <div class="w-8 h-8 rounded-full" :style="'background: ' + themeData.colors.secondary"></div>
+                                                <div class="w-8 h-8 rounded-full" :style="'background: ' + themeData.colors.accent"></div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Custom Colors -->
+                        <div x-show="themeTab === 'custom'">
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block font-medium text-gray-900 mb-2">Primary Color</label>
+                                    <div class="flex gap-3 items-center">
+                                        <input type="color" x-model="customColors.primary"
+                                               class="h-12 w-20 rounded border-2 border-gray-300 cursor-pointer">
+                                        <input type="text" x-model="customColors.primary"
+                                               class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg font-mono">
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">Main buttons and highlights</p>
+                                </div>
+
+                                <div>
+                                    <label class="block font-medium text-gray-900 mb-2">Secondary Color</label>
+                                    <div class="flex gap-3 items-center">
+                                        <input type="color" x-model="customColors.secondary"
+                                               class="h-12 w-20 rounded border-2 border-gray-300 cursor-pointer">
+                                        <input type="text" x-model="customColors.secondary"
+                                               class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg font-mono">
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">Secondary elements and accents</p>
+                                </div>
+
+                                <div>
+                                    <label class="block font-medium text-gray-900 mb-2">Accent Color</label>
+                                    <div class="flex gap-3 items-center">
+                                        <input type="color" x-model="customColors.accent"
+                                               class="h-12 w-20 rounded border-2 border-gray-300 cursor-pointer">
+                                        <input type="text" x-model="customColors.accent"
+                                               class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg font-mono">
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">Special highlights and badges</p>
+                                </div>
+
+                                <!-- Preview -->
+                                <div class="mt-6 p-6 rounded-xl" :style="'background: linear-gradient(135deg, ' + customColors.primary + ', ' + customColors.secondary + ')'">
+                                    <div class="bg-white rounded-lg p-4">
+                                        <h3 class="font-bold text-lg mb-2" :style="'color: ' + customColors.primary">Preview</h3>
+                                        <div class="flex gap-2">
+                                            <button class="px-4 py-2 rounded-lg text-white font-medium"
+                                                    :style="'background: ' + customColors.primary">
+                                                Primary Button
+                                            </button>
+                                            <button class="px-4 py-2 rounded-lg text-white font-medium"
+                                                    :style="'background: ' + customColors.secondary">
+                                                Secondary Button
+                                            </button>
+                                            <span class="px-3 py-2 rounded-full text-white font-medium text-sm"
+                                                  :style="'background: ' + customColors.accent">
+                                                100 pts
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Apply Button -->
+                        <div class="mt-6 flex gap-3">
+                            <button @click="showThemeSelector = false"
+                                    class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                                Cancel
+                            </button>
+                            <button @click="applyTheme()"
+                                    class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:shadow-lg transition-all">
+                                ✓ Apply Theme
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Disabled State Message -->
+                    <div x-show="!themeEnabled" class="text-center py-12">
+                        <div class="text-6xl mb-4">🎨</div>
+                        <p class="text-gray-600">Enable theme customization above to personalize your dashboard</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -884,6 +1042,19 @@ function parentDashboard() {
         taskCategories: [],
         selectedTaskCategory: '',
         availableTaskTemplates: [],
+        // Theme-related variables
+        showThemeSelector: false,
+        themeEnabled: false,
+        themeTab: 'preset',
+        selectedTheme: '',
+        currentTheme: null,
+        themeStyles: '',
+        allThemes: typeof THEMES !== 'undefined' ? THEMES : {},
+        customColors: {
+            primary: '#4F46E5',
+            secondary: '#7C3AED',
+            accent: '#F59E0B'
+        },
         newTask: {
             title: '',
             description: '',
@@ -910,6 +1081,7 @@ function parentDashboard() {
 
         async init() {
             await this.loadCurrentUser();
+            await this.loadThemePreferences();
             await this.loadData();
             await this.loadFamilyInfo();
             await this.loadFamilyMembers();
@@ -1593,6 +1765,124 @@ function parentDashboard() {
             } catch (error) {
                 console.error('Error bulk deleting tasks:', error);
                 alert('Failed to delete tasks');
+            }
+        },
+
+        // Theme Functions
+        selectPresetTheme(themeName) {
+            this.selectedTheme = themeName;
+            this.themeTab = 'preset';
+        },
+
+        async applyTheme() {
+            if (!this.themeEnabled) {
+                // Disable theme - reset to default
+                try {
+                    const res = await fetch('/api/auth/theme', {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            theme: 'default',
+                            theme_enabled: false
+                        })
+                    });
+
+                    if (res.ok) {
+                        this.currentTheme = null;
+                        this.themeStyles = '';
+                        this.showThemeSelector = false;
+                        alert('✅ Theme disabled');
+                    }
+                } catch (error) {
+                    console.error('Error disabling theme:', error);
+                    alert('Failed to disable theme');
+                }
+                return;
+            }
+
+            // Apply preset or custom theme
+            let themeToSave = {};
+            if (this.themeTab === 'preset' && this.selectedTheme) {
+                themeToSave = {
+                    theme: this.selectedTheme,
+                    theme_enabled: true
+                };
+            } else if (this.themeTab === 'custom') {
+                themeToSave = {
+                    theme: 'custom',
+                    theme_enabled: true,
+                    custom_colors: this.customColors
+                };
+            } else {
+                alert('Please select a theme or customize colors');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/theme', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(themeToSave)
+                });
+
+                if (res.ok) {
+                    this.showThemeSelector = false;
+                    alert('✅ Theme applied! Refreshing...');
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    const error = await res.json();
+                    alert('Error: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Error applying theme:', error);
+                alert('Failed to apply theme');
+            }
+        },
+
+        applyThemeStyles() {
+            if (!this.currentTheme) return;
+
+            const theme = this.currentTheme;
+            this.themeStyles = `background: ${theme.colors.background};`;
+
+            // Apply CSS variables
+            const root = document.documentElement;
+            root.style.setProperty('--theme-primary', theme.colors.primary);
+            root.style.setProperty('--theme-secondary', theme.colors.secondary);
+            root.style.setProperty('--theme-accent', theme.colors.accent);
+        },
+
+        async loadThemePreferences() {
+            try {
+                const res = await fetch('/api/auth/me', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.theme_enabled) {
+                        this.themeEnabled = true;
+                        if (data.theme === 'custom' && data.custom_colors) {
+                            this.customColors = data.custom_colors;
+                            this.themeTab = 'custom';
+                            this.currentTheme = {
+                                colors: {
+                                    primary: data.custom_colors.primary,
+                                    secondary: data.custom_colors.secondary,
+                                    accent: data.custom_colors.accent,
+                                    background: `linear-gradient(135deg, ${data.custom_colors.primary}, ${data.custom_colors.secondary})`
+                                }
+                            };
+                        } else if (data.theme && this.allThemes[data.theme]) {
+                            this.selectedTheme = data.theme;
+                            this.currentTheme = this.allThemes[data.theme];
+                        }
+                        this.applyThemeStyles();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading theme preferences:', error);
             }
         }
     }

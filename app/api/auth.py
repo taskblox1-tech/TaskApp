@@ -190,6 +190,8 @@ async def get_me(current_user: Profile = Depends(get_current_user)):
         "family_id": current_user.family_id,
         "theme": current_user.theme,
         "avatar": current_user.avatar,
+        "theme_enabled": current_user.theme_enabled if hasattr(current_user, 'theme_enabled') else False,
+        "custom_colors": current_user.custom_colors if hasattr(current_user, 'custom_colors') else None,
         "current_streak": current_user.current_streak,
         "longest_streak": current_user.longest_streak,
         "total_points": current_user.total_lifetime_points
@@ -202,11 +204,17 @@ async def update_theme(
     current_user: Profile = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update user's theme and avatar"""
+    """Update user's theme, avatar, and theme settings"""
     if "theme" in theme_data:
         current_user.theme = theme_data["theme"]
     if "avatar" in theme_data:
         current_user.avatar = theme_data["avatar"]
+    if "theme_enabled" in theme_data:
+        if hasattr(current_user, 'theme_enabled'):
+            current_user.theme_enabled = theme_data["theme_enabled"]
+    if "custom_colors" in theme_data:
+        if hasattr(current_user, 'custom_colors'):
+            current_user.custom_colors = theme_data["custom_colors"]
 
     db.commit()
     db.refresh(current_user)
@@ -214,7 +222,9 @@ async def update_theme(
     return {
         "success": True,
         "theme": current_user.theme,
-        "avatar": current_user.avatar
+        "avatar": current_user.avatar,
+        "theme_enabled": current_user.theme_enabled if hasattr(current_user, 'theme_enabled') else False,
+        "custom_colors": current_user.custom_colors if hasattr(current_user, 'custom_colors') else None
     }
 
 
