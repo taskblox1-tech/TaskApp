@@ -655,3 +655,107 @@ select {
     width: 100%;
   }
 }
+
+/* ====================================================================
+   BIG AVATAR DISPLAY FOR DASHBOARD
+   Animated floating avatar circle with character emoji
+   ==================================================================== */
+
+/* Character Avatar Container */
+.character-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Floating Avatar Circle */
+.avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: float 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Hover Effect for Avatar Circle */
+.avatar-circle:hover {
+  transform: translateY(-10px) scale(1.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 8px rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Avatar Emoji Inside Circle */
+.avatar-circle .avatar-emoji {
+  font-size: 4.5rem;
+  animation: gentle-pulse 2s ease-in-out infinite;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+/* Gentle Pulse Animation */
+@keyframes gentle-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Avatar Label */
+.avatar-label {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  margin-top: 0.5rem;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+}
+
+/* Points Display Enhancements */
+.points-display {
+  text-align: center;
+}
+
+/* Streak Display Enhancements */
+.streak-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive adjustments for big avatar */
+@media (max-width: 640px) {
+  .avatar-circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .avatar-circle .avatar-emoji {
+    font-size: 3.5rem;
+  }
+
+  .avatar-label {
+    font-size: 1rem;
+  }
+
+  .character-avatar,
+  .points-display,
+  .streak-display {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+}
