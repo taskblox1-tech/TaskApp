@@ -12,11 +12,23 @@
     <header class="bg-white shadow-md">
         <div class="max-w-4xl mx-auto px-4 py-4">
             <div class="flex justify-between items-center">
-                <div>
+                <div class="flex-1">
                     <h1 class="text-2xl font-bold" x-text="'Hi, ' + childName + '! ' + themeIcon"></h1>
-                    <p class="text-sm text-gray-600" x-text="'Theme: ' + theme"></p>
+                    <p class="text-sm text-gray-600">
+                        Theme: <span x-text="theme"></span>
+                        <span x-show="currentAvatar" x-text="' - ' + currentAvatar"></span>
+                    </p>
                 </div>
-                <button @click="logout()" class="text-sm text-red-600 hover:text-red-800">Logout</button>
+                <div class="flex gap-2">
+                    <button @click="showThemeSelector = true"
+                            class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium">
+                        🎨 Change Theme
+                    </button>
+                    <button @click="logout()"
+                            class="px-4 py-2 text-sm text-red-600 hover:text-red-800">
+                        Logout
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -186,6 +198,95 @@
         </div>
 
     </main>
+
+    <!-- Theme Selector Modal -->
+    <div x-show="showThemeSelector"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-50"
+             @click="showThemeSelector = false"></div>
+
+        <!-- Modal -->
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                 @click.stop>
+                <!-- Header -->
+                <div class="sticky top-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-t-2xl">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold">🎨 Choose Your Theme!</h2>
+                        <button @click="showThemeSelector = false"
+                                class="text-white hover:text-gray-200 text-2xl">×</button>
+                    </div>
+                    <p class="text-sm mt-1 opacity-90">Pick a theme and avatar that you love!</p>
+                </div>
+
+                <!-- Theme Grid -->
+                <div class="p-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <template x-for="(themeConfig, themeName) in allThemes" :key="themeName">
+                            <div @click="selectTheme(themeName)"
+                                 class="cursor-pointer rounded-xl p-4 border-2 transition-all hover:shadow-lg"
+                                 :class="selectedTheme === themeName ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'">
+                                <!-- Theme Preview -->
+                                <div class="h-24 rounded-lg mb-3 flex items-center justify-center text-white text-4xl font-bold"
+                                     :style="'background: ' + themeConfig.colors.background">
+                                    <span x-text="themeConfig.icons.points"></span>
+                                </div>
+
+                                <!-- Theme Name -->
+                                <h3 class="font-bold text-lg mb-2" x-text="themeConfig.name"></h3>
+
+                                <!-- Icons Preview -->
+                                <div class="flex gap-2 text-2xl mb-2">
+                                    <span x-text="themeConfig.icons.task"></span>
+                                    <span x-text="themeConfig.icons.reward"></span>
+                                    <span x-text="themeConfig.icons.streak"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Avatar Selector (shown when theme is selected) -->
+                    <div x-show="selectedTheme && allThemes[selectedTheme]"
+                         class="mt-6 p-6 bg-gray-50 rounded-xl">
+                        <h3 class="font-bold text-lg mb-4">
+                            Choose Your Avatar
+                            <span x-show="allThemes[selectedTheme]"
+                                  x-text="'(' + allThemes[selectedTheme].name + ')'"></span>
+                        </h3>
+
+                        <!-- Avatar Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                            <template x-for="avatar in (selectedTheme && allThemes[selectedTheme] ? allThemes[selectedTheme].avatars : [])"
+                                      :key="avatar">
+                                <div @click="selectedAvatar = avatar"
+                                     class="cursor-pointer p-4 rounded-lg border-2 text-center transition-all hover:shadow-md"
+                                     :class="selectedAvatar === avatar ? 'border-purple-500 bg-purple-100' : 'border-gray-200 hover:border-purple-300'">
+                                    <div class="text-3xl mb-2">🎮</div>
+                                    <div class="text-sm font-medium" x-text="avatar"></div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Apply Button -->
+                        <div class="mt-6 flex justify-end gap-3">
+                            <button @click="showThemeSelector = false"
+                                    class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium">
+                                Cancel
+                            </button>
+                            <button @click="applyThemeAndAvatar()"
+                                    :disabled="!selectedTheme || !selectedAvatar"
+                                    class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                Apply Theme
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -195,12 +296,17 @@ function childDashboard() {
         theme: '',
         themeIcon: '',
         currentTheme: null,
+        currentAvatar: '',
         themeStyles: '',
         totalPoints: 0,
         tasks: [],
         rewards: [],
         filter: 'all',
         selectedPeriod: 'today',
+        showThemeSelector: false,
+        allThemes: typeof THEMES !== 'undefined' ? THEMES : {},
+        selectedTheme: '',
+        selectedAvatar: '',
         progressStats: {
             total_completed: 0,
             total_points: 0,
@@ -238,6 +344,7 @@ function childDashboard() {
                     const data = await res.json();
                     this.childName = data.name || 'Child';
                     this.theme = data.theme || 'minecraft';
+                    this.currentAvatar = data.avatar || '';
                     this.totalPoints = data.total_points || 0;
                     this.themeIcon = this.getThemeIcon(data.theme);
 
@@ -256,6 +363,79 @@ function childDashboard() {
             if (typeof applyThemeStyles === 'function') {
                 applyThemeStyles(themeName);
                 this.themeStyles = `background: ${this.currentTheme.colors.background}`;
+            }
+        },
+
+        selectTheme(themeName) {
+            this.selectedTheme = themeName;
+            // Pre-select the first avatar or current avatar if same theme
+            if (this.allThemes[themeName] && this.allThemes[themeName].avatars.length > 0) {
+                if (this.theme === themeName && this.currentAvatar) {
+                    this.selectedAvatar = this.currentAvatar;
+                } else {
+                    this.selectedAvatar = this.allThemes[themeName].avatars[0];
+                }
+            }
+        },
+
+        async applyThemeAndAvatar() {
+            if (!this.selectedTheme || !this.selectedAvatar) {
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/theme', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        theme: this.selectedTheme,
+                        avatar: this.selectedAvatar
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    // Update local state
+                    this.theme = this.selectedTheme;
+                    this.currentAvatar = this.selectedAvatar;
+                    this.themeIcon = this.getThemeIcon(this.selectedTheme);
+
+                    // Apply new theme
+                    if (typeof THEMES !== 'undefined' && THEMES[this.theme]) {
+                        this.currentTheme = THEMES[this.theme];
+                        this.applyTheme(this.theme);
+                    }
+
+                    // Close modal
+                    this.showThemeSelector = false;
+
+                    // Show success message
+                    if (typeof showToast === 'function') {
+                        showToast(`Theme changed to ${THEMES[this.theme].name} - ${this.currentAvatar}!`, 'success');
+                    } else {
+                        alert(`Theme changed to ${THEMES[this.theme].name} - ${this.currentAvatar}!`);
+                    }
+
+                    // Reload page to apply theme everywhere
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const error = await res.json();
+                    if (typeof showToast === 'function') {
+                        showToast('Failed to update theme: ' + error.detail, 'error');
+                    } else {
+                        alert('Failed to update theme');
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating theme:', error);
+                if (typeof showToast === 'function') {
+                    showToast('Failed to update theme', 'error');
+                } else {
+                    alert('Failed to update theme');
+                }
             }
         },
 

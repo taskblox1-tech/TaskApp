@@ -47,7 +47,18 @@ const THEMES = {
       taskComplete: '/static/sounds/roblox-oof.mp3',
       pointsEarn: '/static/sounds/roblox-coin.mp3'
     },
-    avatars: ['Blocky', 'Guest', 'Noob', 'Bacon Hair']
+    avatars: [
+      'Bacon Hair',
+      'Guest 666',
+      'Noob',
+      'Cool Kid',
+      'Builder',
+      'Ninja',
+      'Superhero',
+      'Pro Gamer',
+      'Adventurer',
+      'Robux King'
+    ]
   },
 
   barbie: {
@@ -117,6 +128,40 @@ const THEMES = {
       pointsEarn: '/static/sounds/turtle-ding.mp3'
     },
     avatars: ['Leonardo', 'Michelangelo', 'Donatello', 'Raphael']
+  },
+
+  mario: {
+    name: 'Super Mario',
+    colors: {
+      primary: '#E52521',
+      secondary: '#FEDE00',
+      accent: '#049CD8',
+      background: 'linear-gradient(135deg, #E52521, #FEDE00)'
+    },
+    icons: {
+      points: '⭐',
+      task: '🍄',
+      reward: '👑',
+      complete: '✅',
+      pending: '⏰',
+      streak: '🔥'
+    },
+    sounds: {
+      taskComplete: '/static/sounds/mario-coin.mp3',
+      pointsEarn: '/static/sounds/mario-powerup.mp3'
+    },
+    avatars: [
+      'Mario',
+      'Luigi',
+      'Princess Peach',
+      'Yoshi',
+      'Toad',
+      'Bowser',
+      'Wario',
+      'Princess Daisy',
+      'Waluigi',
+      'Donkey Kong'
+    ]
   },
 
   default: {
