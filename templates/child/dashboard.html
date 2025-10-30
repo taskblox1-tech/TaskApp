@@ -180,24 +180,111 @@
             </div>
         </div>
 
-        <!-- Rewards Preview -->
+        <!-- Rewards Shop -->
         <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
-            <h2 class="text-xl font-bold mb-4">🎁 Available Rewards</h2>
+            <h2 class="text-xl font-bold mb-4">🎁 Rewards Shop</h2>
+            <p class="text-sm text-gray-600 mb-4">Click on a reward to redeem it!</p>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <template x-for="reward in rewards.slice(0, 6)" :key="reward.id">
-                    <div class="text-center p-4 bg-gray-50 rounded-lg border-2"
-                         :class="totalPoints >= reward.cost ? 'border-green-500' : 'border-gray-200'">
-                        <div class="text-3xl mb-2" x-text="reward.icon"></div>
+                <template x-for="reward in rewards" :key="reward.id">
+                    <button @click="openRedeemModal(reward)"
+                            class="text-center p-4 bg-gray-50 rounded-lg border-2 transition-all hover:shadow-md"
+                            :class="totalPoints >= reward.cost ? 'border-green-500 hover:border-green-600 cursor-pointer' : 'border-gray-200 opacity-60 cursor-not-allowed'"
+                            :disabled="totalPoints < reward.cost">
+                        <div class="text-4xl mb-2" x-text="reward.icon"></div>
                         <div class="font-medium text-sm mb-1" x-text="reward.name"></div>
-                        <div class="text-xs font-bold" 
+                        <div class="text-xs font-bold"
                              :class="totalPoints >= reward.cost ? 'text-green-600' : 'text-gray-600'"
                              x-text="reward.cost + ' pts'"></div>
+                        <div x-show="totalPoints >= reward.cost"
+                             class="text-xs text-green-600 mt-1">
+                            ✓ Can afford!
+                        </div>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- Redeemed Rewards History -->
+        <div x-show="redeemedRewards.length > 0" class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4">🏆 Your Redeemed Rewards</h2>
+            <div class="space-y-2">
+                <template x-for="reward in redeemedRewards.slice(0, 5)" :key="reward.id + reward.redeemed_date">
+                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-200">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl" x-text="reward.icon"></span>
+                            <div>
+                                <div class="font-medium text-sm" x-text="reward.name"></div>
+                                <div class="text-xs text-gray-600" x-text="reward.cost + ' pts'"></div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500" x-text="new Date(reward.redeemed_date).toLocaleDateString()"></div>
                     </div>
                 </template>
             </div>
         </div>
 
     </main>
+
+    <!-- Reward Redemption Modal -->
+    <div x-show="showRedeemModal"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-50"
+             @click="showRedeemModal = false"></div>
+
+        <!-- Modal -->
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full"
+                 @click.stop>
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-6 rounded-t-2xl">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold">🎁 Redeem Reward</h2>
+                        <button @click="showRedeemModal = false"
+                                class="text-white hover:text-gray-200 text-2xl">×</button>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6">
+                    <div x-show="selectedReward" class="text-center">
+                        <div class="text-6xl mb-4" x-text="selectedReward ? selectedReward.icon : ''"></div>
+                        <h3 class="text-2xl font-bold mb-2" x-text="selectedReward ? selectedReward.name : ''"></h3>
+                        <p class="text-4xl font-bold text-orange-600 mb-4" x-text="selectedReward ? selectedReward.cost + ' points' : ''"></p>
+
+                        <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                            <div class="text-sm text-gray-600">Your Points</div>
+                            <div class="text-3xl font-bold text-blue-600" x-text="totalPoints"></div>
+                            <div class="text-sm text-gray-600 mt-2">
+                                After redeeming:
+                                <span class="font-bold"
+                                      :class="(totalPoints - (selectedReward ? selectedReward.cost : 0)) >= 0 ? 'text-green-600' : 'text-red-600'"
+                                      x-text="(totalPoints - (selectedReward ? selectedReward.cost : 0))"></span>
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-gray-600 mb-6">
+                            Are you sure you want to redeem this reward?
+                        </p>
+
+                        <!-- Buttons -->
+                        <div class="flex gap-3">
+                            <button @click="showRedeemModal = false"
+                                    class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium">
+                                Cancel
+                            </button>
+                            <button @click="redeemReward()"
+                                    class="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all font-medium">
+                                Redeem!
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Theme Selector Modal -->
     <div x-show="showThemeSelector"
@@ -314,9 +401,12 @@ function childDashboard() {
         totalPoints: 0,
         tasks: [],
         rewards: [],
+        redeemedRewards: [],
         filter: 'all',
         selectedPeriod: 'today',
         showThemeSelector: false,
+        showRedeemModal: false,
+        selectedReward: null,
         allThemes: typeof THEMES !== 'undefined' ? THEMES : {},
         selectedTheme: '',
         selectedAvatar: '',
@@ -341,6 +431,7 @@ function childDashboard() {
             await this.loadProgressStats();
             await this.loadTasks();
             await this.loadRewards();
+            await this.loadRedeemedRewards();
         },
 
         async changePeriod(period) {
@@ -507,6 +598,78 @@ function childDashboard() {
                 }
             } catch (error) {
                 console.error('Error loading rewards:', error);
+            }
+        },
+
+        async loadRedeemedRewards() {
+            try {
+                const res = await fetch('/api/rewards/redeemed', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.redeemedRewards = data.redeemed_rewards || [];
+                }
+            } catch (error) {
+                console.error('Error loading redeemed rewards:', error);
+            }
+        },
+
+        openRedeemModal(reward) {
+            if (this.totalPoints >= reward.cost) {
+                this.selectedReward = reward;
+                this.showRedeemModal = true;
+            }
+        },
+
+        async redeemReward() {
+            if (!this.selectedReward) return;
+
+            try {
+                const res = await fetch(`/api/rewards/${this.selectedReward.id}/redeem`, {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // Update points
+                    this.totalPoints = data.remaining_points;
+
+                    // Trigger confetti celebration!
+                    if (typeof confettiBurst === 'function') {
+                        confettiBurst(window.innerWidth / 2, window.innerHeight / 2);
+                    }
+
+                    // Show success message
+                    if (typeof showToast === 'function') {
+                        showToast(`🎉 ${data.message}`, 'success');
+                    } else {
+                        alert(`🎉 ${data.message}`);
+                    }
+
+                    // Close modal
+                    this.showRedeemModal = false;
+                    this.selectedReward = null;
+
+                    // Reload redeemed rewards history
+                    await this.loadRedeemedRewards();
+                } else {
+                    const error = await res.json();
+                    if (typeof showToast === 'function') {
+                        showToast('Error: ' + error.detail, 'error');
+                    } else {
+                        alert('Error: ' + error.detail);
+                    }
+                }
+            } catch (error) {
+                console.error('Error redeeming reward:', error);
+                if (typeof showToast === 'function') {
+                    showToast('Failed to redeem reward', 'error');
+                } else {
+                    alert('Failed to redeem reward');
+                }
             }
         },
         

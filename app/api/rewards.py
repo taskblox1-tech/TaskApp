@@ -130,3 +130,101 @@ async def delete_reward(
     db.commit()
 
     return {"message": "Reward deleted successfully!"}
+
+
+@router.post("/{reward_id}/redeem")
+async def redeem_reward(
+    reward_id: int,
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Redeem a reward with points"""
+    from app.models.daily_progress import DailyProgress
+    from datetime import date
+    from sqlalchemy.orm.attributes import flag_modified
+
+    # Verify reward exists and belongs to family
+    reward = db.query(Reward).filter(
+        Reward.id == reward_id,
+        Reward.family_id == current_user.family_id,
+        Reward.is_active == 1
+    ).first()
+
+    if not reward:
+        raise HTTPException(status_code=404, detail="Reward not found")
+
+    # Check if user has enough points
+    if current_user.total_lifetime_points < reward.cost:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Not enough points! You need {reward.cost} points but only have {current_user.total_lifetime_points}."
+        )
+
+    # Get or create today's progress record
+    today = date.today()
+    progress = db.query(DailyProgress).filter(
+        DailyProgress.child_id == current_user.id,
+        DailyProgress.date == today
+    ).first()
+
+    if not progress:
+        progress = DailyProgress(
+            child_id=current_user.id,
+            date=today,
+            total_points=0,
+            completed_task_ids=[],
+            pending_approval_ids=[],
+            redeemed_reward_ids=[]
+        )
+        db.add(progress)
+
+    # Add reward to redeemed list
+    if progress.redeemed_reward_ids is None:
+        progress.redeemed_reward_ids = []
+
+    progress.redeemed_reward_ids.append(reward_id)
+    flag_modified(progress, 'redeemed_reward_ids')
+
+    # Deduct points from user's total
+    current_user.total_lifetime_points -= reward.cost
+
+    db.commit()
+
+    return {
+        "message": f"Congratulations! You redeemed {reward.name}!",
+        "reward_name": reward.name,
+        "points_spent": reward.cost,
+        "remaining_points": current_user.total_lifetime_points
+    }
+
+
+@router.get("/redeemed")
+async def get_redeemed_rewards(
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get history of redeemed rewards for current user"""
+    from app.models.daily_progress import DailyProgress
+
+    # Get all progress records with redeemed rewards
+    progress_records = db.query(DailyProgress).filter(
+        DailyProgress.child_id == current_user.id,
+        DailyProgress.redeemed_reward_ids.isnot(None)
+    ).order_by(DailyProgress.date.desc()).all()
+
+    # Build list of redeemed rewards with dates
+    redeemed_list = []
+    for progress in progress_records:
+        if progress.redeemed_reward_ids:
+            for reward_id in progress.redeemed_reward_ids:
+                reward = db.query(Reward).filter(Reward.id == reward_id).first()
+                if reward:
+                    redeemed_list.append({
+                        "id": reward.id,
+                        "name": reward.name,
+                        "cost": reward.cost,
+                        "icon": reward.icon,
+                        "redeemed_date": progress.date.isoformat()
+                    })
+
+    return {"redeemed_rewards": redeemed_list}
