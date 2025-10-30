@@ -214,3 +214,79 @@ async def get_children(
             for child in children
         ]
     }
+
+
+@router.get("/children/stats")
+async def get_children_stats(
+    current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get detailed stats for all children in family"""
+    from app.models.daily_progress import DailyProgress
+    from app.models.task_assignment import TaskAssignment
+    from app.models.task_approval import TaskApproval, ApprovalStatus
+    from datetime import date
+    from sqlalchemy import func
+
+    if not current_user or not current_user.family_id:
+        return {"children_stats": []}
+
+    children = db.query(Profile).filter(
+        Profile.family_id == current_user.family_id,
+        Profile.role == "child"
+    ).all()
+
+    today = date.today()
+    children_stats = []
+
+    for child in children:
+        # Get today's progress
+        today_progress = db.query(DailyProgress).filter(
+            DailyProgress.child_id == child.id,
+            DailyProgress.date == today
+        ).first()
+
+        # Calculate stats
+        tasks_completed_today = len(today_progress.completed_task_ids) if today_progress and today_progress.completed_task_ids else 0
+        points_earned_today = today_progress.total_points if today_progress else 0
+        pending_approvals_count = len(today_progress.pending_approval_ids) if today_progress and today_progress.pending_approval_ids else 0
+
+        # Get total rewards claimed (count all redeemed rewards across all days)
+        total_rewards_claimed = db.query(func.count(func.distinct(func.json_each(DailyProgress.redeemed_reward_ids)))).filter(
+            DailyProgress.child_id == child.id,
+            DailyProgress.redeemed_reward_ids.isnot(None)
+        ).scalar() or 0
+
+        # Get tasks assigned to this child
+        assigned_tasks_count = db.query(TaskAssignment).filter(
+            TaskAssignment.child_id == child.id
+        ).count()
+
+        # Get last activity date (most recent daily progress entry)
+        last_activity = db.query(DailyProgress).filter(
+            DailyProgress.child_id == child.id
+        ).order_by(DailyProgress.date.desc()).first()
+
+        last_activity_date = last_activity.date.isoformat() if last_activity else None
+
+        # Calculate completion rate (tasks completed today vs assigned)
+        completion_rate = 0
+        if assigned_tasks_count > 0 and tasks_completed_today > 0:
+            completion_rate = min(100, round((tasks_completed_today / assigned_tasks_count) * 100))
+
+        children_stats.append({
+            "id": child.id,
+            "first_name": child.first_name,
+            "last_name": child.last_name,
+            "theme": child.theme,
+            "total_lifetime_points": child.total_lifetime_points,
+            "tasks_completed_today": tasks_completed_today,
+            "points_earned_today": points_earned_today,
+            "pending_approvals": pending_approvals_count,
+            "total_rewards_claimed": total_rewards_claimed,
+            "assigned_tasks_count": assigned_tasks_count,
+            "completion_rate": completion_rate,
+            "last_activity_date": last_activity_date
+        })
+
+    return {"children_stats": children_stats}

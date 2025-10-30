@@ -11,9 +11,15 @@
     <!-- Header -->
     <header class="bg-white shadow">
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">🏠 Family Dashboard</h1>
-                <button @click="logout()" class="text-sm text-red-600 hover:text-red-800">Logout</button>
+            <div class="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">🏠 Family Dashboard</h1>
+                    <p class="text-sm text-gray-600 mt-1" x-show="currentUserName">Welcome, <span x-text="currentUserName" class="font-semibold"></span></p>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <div class="text-sm text-gray-600" x-text="currentDateTime"></div>
+                    <button @click="logout()" class="text-sm text-red-600 hover:text-red-800 font-medium">Logout</button>
+                </div>
             </div>
         </div>
     </header>
@@ -62,22 +68,27 @@
         <div class="bg-white rounded-lg shadow mb-6">
             <div class="border-b border-gray-200">
                 <nav class="flex -mb-px overflow-x-auto">
-                    <button @click="activeTab = 'children'" 
+                    <button @click="activeTab = 'children'"
                             :class="activeTab === 'children' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
                             class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
                         👨‍👩‍👧 Children
                     </button>
-                    <button @click="activeTab = 'approvals'" 
+                    <button @click="activeTab = 'family'"
+                            :class="activeTab === 'family' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
+                            class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+                        👥 Family Members
+                    </button>
+                    <button @click="activeTab = 'approvals'"
                             :class="activeTab === 'approvals' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
                             class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
                         ✅ Approvals
                     </button>
-                    <button @click="activeTab = 'tasks'" 
+                    <button @click="activeTab = 'tasks'"
                             :class="activeTab === 'tasks' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
                             class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
                         📋 All Tasks
                     </button>
-                    <button @click="activeTab = 'rewards'" 
+                    <button @click="activeTab = 'rewards'"
                             :class="activeTab === 'rewards' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
                             class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
                         🎁 Rewards
@@ -95,7 +106,7 @@
                     </div>
 
                     <!-- Empty State -->
-                    <div x-show="children.length === 0" class="text-center py-12">
+                    <div x-show="childrenStats.length === 0" class="text-center py-12">
                         <div class="text-6xl mb-4">👨‍👩‍👧</div>
                         <h3 class="text-xl font-bold text-gray-700 mb-2">No Children Yet</h3>
                         <p class="text-gray-600 mb-4">Share your family join code with your children to get started!</p>
@@ -105,17 +116,129 @@
                     </div>
 
                     <!-- Children Grid -->
-                    <div x-show="children.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <template x-for="child in children" :key="child.id">
-                            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
-                                <div class="flex items-center justify-between mb-2">
-                                    <h3 class="text-lg font-bold" x-text="child.first_name + ' ' + child.last_name"></h3>
-                                    <span class="text-2xl" x-text="getThemeIcon(child.theme)"></span>
+                    <div x-show="childrenStats.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <template x-for="child in childrenStats" :key="child.id">
+                            <div class="bg-white rounded-lg shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
+                                <!-- Header -->
+                                <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h3 class="text-xl font-bold" x-text="child.first_name + ' ' + child.last_name"></h3>
+                                            <p class="text-sm opacity-90 capitalize" x-text="child.theme + ' Theme'"></p>
+                                        </div>
+                                        <span class="text-4xl" x-text="getThemeIcon(child.theme)"></span>
+                                    </div>
                                 </div>
-                                <div class="text-sm text-gray-600 mb-2">
-                                    Theme: <span class="font-medium capitalize" x-text="child.theme"></span>
+
+                                <!-- Stats Grid -->
+                                <div class="p-4 bg-gray-50">
+                                    <div class="grid grid-cols-2 gap-3 mb-4">
+                                        <!-- Today's Points -->
+                                        <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                            <div class="text-xs text-gray-600 mb-1">Today's Points</div>
+                                            <div class="text-2xl font-bold text-green-600" x-text="child.points_earned_today"></div>
+                                        </div>
+
+                                        <!-- Tasks Completed -->
+                                        <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                            <div class="text-xs text-gray-600 mb-1">Tasks Done Today</div>
+                                            <div class="text-2xl font-bold text-blue-600" x-text="child.tasks_completed_today"></div>
+                                        </div>
+
+                                        <!-- Pending Approvals -->
+                                        <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                            <div class="text-xs text-gray-600 mb-1">Pending Approval</div>
+                                            <div class="text-2xl font-bold text-yellow-600" x-text="child.pending_approvals"></div>
+                                        </div>
+
+                                        <!-- Total Rewards -->
+                                        <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                            <div class="text-xs text-gray-600 mb-1">Rewards Claimed</div>
+                                            <div class="text-2xl font-bold text-purple-600" x-text="child.total_rewards_claimed"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Progress Bar -->
+                                    <div class="mb-3">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-xs font-medium text-gray-600">Today's Completion</span>
+                                            <span class="text-xs font-bold text-gray-800" x-text="child.completion_rate + '%'"></span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all"
+                                                 :style="`width: ${child.completion_rate}%`"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            <span x-text="child.tasks_completed_today"></span> of <span x-text="child.assigned_tasks_count"></span> tasks assigned
+                                        </p>
+                                    </div>
+
+                                    <!-- Total Points Badge -->
+                                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg">
+                                        <div>
+                                            <div class="text-xs text-gray-600">Total Lifetime Points</div>
+                                            <div class="text-3xl font-bold text-purple-700" x-text="child.total_lifetime_points"></div>
+                                        </div>
+                                        <div class="text-4xl">⭐</div>
+                                    </div>
+
+                                    <!-- Last Activity -->
+                                    <div class="mt-3 text-xs text-gray-500 text-center" x-show="child.last_activity_date">
+                                        Last active: <span x-text="formatDate(child.last_activity_date)"></span>
+                                    </div>
+                                    <div class="mt-3 text-xs text-gray-400 text-center" x-show="!child.last_activity_date">
+                                        No activity yet
+                                    </div>
                                 </div>
-                                <div class="text-2xl font-bold text-purple-600" x-text="child.total_lifetime_points + ' points'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Family Members Tab -->
+                <div x-show="activeTab === 'family'">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Family Members</h2>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div x-show="familyMembers.length === 0" class="text-center py-12 text-gray-500">
+                        No family members found
+                    </div>
+
+                    <!-- Family Members List -->
+                    <div x-show="familyMembers.length > 0" class="space-y-3">
+                        <template x-for="member in familyMembers" :key="member.id">
+                            <div class="bg-white rounded-lg p-4 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <!-- Role Icon -->
+                                        <div class="text-3xl" x-text="member.role === 'parent' ? '👨‍💼' : getThemeIcon(member.theme)"></div>
+
+                                        <!-- Member Info -->
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h3 class="font-bold text-lg" x-text="member.first_name + ' ' + member.last_name"></h3>
+                                                <span x-show="member.is_current_user" class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-medium">(You)</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600 capitalize" x-text="member.role"></p>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                <span class="font-medium">Email:</span> <span x-text="member.email"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Last Login Info -->
+                                    <div class="text-right">
+                                        <div class="text-xs text-gray-500 mb-1">Last Login</div>
+                                        <div class="text-sm font-semibold text-gray-700" x-text="formatDateTime(member.last_login)"></div>
+                                        <div x-show="member.role === 'child'" class="mt-2">
+                                            <span class="inline-block bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded">
+                                                <span x-text="member.total_lifetime_points"></span> pts
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </template>
                     </div>
@@ -736,7 +859,11 @@
 function parentDashboard() {
     return {
         activeTab: 'children',
+        currentUserName: '',
+        currentDateTime: '',
         children: [],
+        childrenStats: [],
+        familyMembers: [],
         tasks: [],
         approvals: [],
         rewards: [],
@@ -782,9 +909,55 @@ function parentDashboard() {
         },
 
         async init() {
+            await this.loadCurrentUser();
             await this.loadData();
             await this.loadFamilyInfo();
+            await this.loadFamilyMembers();
             this.taskCategories = getTaskCategories();
+            this.updateDateTime();
+            // Update time every minute
+            setInterval(() => this.updateDateTime(), 60000);
+        },
+
+        async loadCurrentUser() {
+            try {
+                const res = await fetch('/api/auth/me', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.currentUserName = data.name;
+                }
+            } catch (error) {
+                console.error('Error loading current user:', error);
+            }
+        },
+
+        async loadFamilyMembers() {
+            try {
+                const res = await fetch('/api/families/members', {
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.familyMembers = data.members || [];
+                }
+            } catch (error) {
+                console.error('Error loading family members:', error);
+            }
+        },
+
+        updateDateTime() {
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            this.currentDateTime = now.toLocaleDateString('en-US', options);
         },
 
         async loadFamilyInfo() {
@@ -812,13 +985,23 @@ function parentDashboard() {
 
         async loadData() {
             try {
+                // Load children basic info (still needed for some operations)
                 const childrenRes = await fetch('/api/auth/children', {
                     credentials: 'same-origin'
                 });
                 if (childrenRes.ok) {
                     const data = await childrenRes.json();
                     this.children = data.children || [];
-                    this.stats.totalPoints = this.children.reduce((sum, child) => sum + child.total_lifetime_points, 0);
+                }
+
+                // Load detailed children stats
+                const childrenStatsRes = await fetch('/api/auth/children/stats', {
+                    credentials: 'same-origin'
+                });
+                if (childrenStatsRes.ok) {
+                    const data = await childrenStatsRes.json();
+                    this.childrenStats = data.children_stats || [];
+                    this.stats.totalPoints = this.childrenStats.reduce((sum, child) => sum + child.total_lifetime_points, 0);
                 }
 
                 const tasksRes = await fetch('/api/tasks/', {
@@ -902,6 +1085,54 @@ function parentDashboard() {
                 ocean: '🌊'
             };
             return icons[theme] || '⭐';
+        },
+
+        formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            // Check if today
+            if (date.toDateString() === today.toDateString()) {
+                return 'Today';
+            }
+            // Check if yesterday
+            if (date.toDateString() === yesterday.toDateString()) {
+                return 'Yesterday';
+            }
+            // Otherwise format as date
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        },
+
+        formatDateTime(dateTimeString) {
+            if (!dateTimeString) return 'Never';
+            const date = new Date(dateTimeString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            // Less than 1 minute
+            if (diffMins < 1) {
+                return 'Just now';
+            }
+            // Less than 1 hour
+            if (diffMins < 60) {
+                return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+            }
+            // Less than 24 hours
+            if (diffHours < 24) {
+                return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            }
+            // Less than 7 days
+            if (diffDays < 7) {
+                return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            }
+            // Otherwise show date
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         },
         
         async approveTask(approvalId) {
